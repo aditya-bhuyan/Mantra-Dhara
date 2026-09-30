@@ -1,9 +1,14 @@
 # Netlify configuration for Mantra Dhara
 # Pure static site — no build step needed. Netlify serves root directly.
 #
-# IMPORTANT: command = "true" is a deliberate no-op shell command.
-# An empty string does NOT override a build command set in the Netlify UI;
-# "true" does, and it exits 0 without producing any output or a _site dir.
+# The "_site does not exist" error is caused by Netlify's auto-installed
+# Jekyll build plugin (@netlify/plugin-jekyll). Even after Gemfile removal,
+# the plugin may persist from a prior site configuration. The solution is to
+# set publish = "." AND ensure no Jekyll plugin runs.
+#
+# If the build still fails after this commit, go to:
+#   Netlify UI → Site configuration → Build & deploy → Build plugins
+#   and REMOVE the Jekyll plugin from there manually.
 
 [build]
   command = "true"
@@ -11,6 +16,7 @@
 
 [build.environment]
   RUBY_VERSION = ""
+  JEKYLL_ENV   = "production"
 
 [[redirects]]
   from   = "/*"
