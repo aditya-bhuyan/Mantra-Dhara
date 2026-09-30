@@ -1,8 +1,12 @@
 # Netlify configuration for Mantra Dhara
 # Pure static site — no build step needed. Netlify serves root directly.
+#
+# IMPORTANT: command = "true" is a deliberate no-op shell command.
+# An empty string does NOT override a build command set in the Netlify UI;
+# "true" does, and it exits 0 without producing any output or a _site dir.
 
 [build]
-  command = ""
+  command = "true"
   publish = "."
 
 [build.environment]
