@@ -5,6 +5,9 @@
   command = ""
   publish = "."
 
+[build.environment]
+  RUBY_VERSION = ""
+
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
