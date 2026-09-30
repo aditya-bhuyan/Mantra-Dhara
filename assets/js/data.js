@@ -1,23 +1,440 @@
 /**
- * Mantra Dhara — Mantra & Sloka Data
- * Structure: { id, section, category, subcategory, deity, tags, repetitions, timing,
- *              odia:{title,text}, hindi:{title,text}, english:{title,text},
- *              meaning:{odia,hindi,english}, benefits, featured?, morning?, evening? }
+ * Mantra Dhara — Content Catalog
+ *
+ * SECTIONS: the 20 navigable sections, each with an ordered list of stotra stubs.
+ * MANTRAS:  the individual entries referenced by stub.id — trilingual content lives here.
+ *
+ * Stub fields:  { id, title }  — human-readable fallback title (English)
+ * Entry fields: { id, section, deity, tags, repetitions, timing,
+ *                 odia:{title,text}, hindi:{title,text}, english:{title,text},
+ *                 meaning:{odia,hindi,english}, benefits,
+ *                 featured?, morning?, evening?, verses? }
+ *
+ * Content status:
+ *   "stub"    — placeholder, content to be filled in
+ *   "partial" — some language versions present
+ *   "full"    — all three language versions complete
  */
 
-const MANTRAS = [
+/* ─────────────────────────────────────────────────────
+   SECTION CATALOG
+   Each section: { id, icon, label, deity?, stubs:[ {id,title} ] }
+───────────────────────────────────────────────────── */
+const SECTIONS = [
+  {
+    id: "morning",
+    icon: "🌅",
+    label: "Morning / Pratah Smarana",
+    stubs: [
+      { id: "kara-darshana",          title: "Kara Darshana Mantra" },
+      { id: "samudra-vasane",         title: "Samudra Vasane Devi" },
+      { id: "brahma-murari",          title: "Brahma Murari Tripurantakari" },
+      { id: "pratah-smarana-stotram", title: "Pratah Smarana Stotram" },
+      { id: "vakratunda-mahakaya",    title: "Vakratunda Mahakaya" },
+      { id: "navagraha-smarana",      title: "Navagraha Smarana" },
+      { id: "rama-nama-smarana",      title: "Rama Nama Smarana" },
+      { id: "krishna-smarana",        title: "Krishna Smarana" },
+    ]
+  },
+  {
+    id: "ganesha",
+    icon: "🐘",
+    label: "Ganesha",
+    deity: "Ganesha",
+    stubs: [
+      { id: "vakratunda-mahakaya",        title: "Vakratunda Mahakaya" },
+      { id: "gajananam-bhutaganadi",      title: "Gajananam Bhutaganadi Sevitam" },
+      { id: "ajam-nirvikalpam",           title: "Ajam Nirvikalpam" },
+      { id: "ganapati-atharvashirsha",    title: "Ganapati Atharvashirsha" },
+      { id: "ganesha-pancharatnam",       title: "Ganesha Pancharatnam" },
+      { id: "ganesha-ashtottara",         title: "Ganesha Ashtottara Shatanamavali" },
+    ]
+  },
+  {
+    id: "shiva",
+    icon: "🕉️",
+    label: "Shiva",
+    deity: "Shiva",
+    stubs: [
+      { id: "shiva-panchakshara-stotram",     title: "Shiva Panchakshara Stotram" },
+      { id: "mahamrityunjaya",                title: "Mahamrityunjaya Mantra" },
+      { id: "lingashtakam",                   title: "Lingashtakam" },
+      { id: "shiva-manasa-puja",              title: "Shiva Manasa Puja" },
+      { id: "bilvashtakam",                   title: "Bilvashtakam" },
+      { id: "shiva-tandava-stotram",          title: "Shiva Tandava Stotram" },
+      { id: "rudrashtakam",                   title: "Rudrashtakam" },
+      { id: "shivaparadha-kshamapana",        title: "Shivaparadhakshamapana Stotram" },
+      { id: "daridrya-dahana-shiva",          title: "Daridrya Dahana Shiva Stotram" },
+      { id: "shiva-ashtakam",                 title: "Shiva Ashtakam" },
+      { id: "shiva-mahimna-stotram",          title: "Shiva Mahimna Stotram" },
+    ]
+  },
+  {
+    id: "vishnu",
+    icon: "🪷",
+    label: "Vishnu / Narayana",
+    deity: "Vishnu",
+    stubs: [
+      { id: "shantakaram",            title: "Shantakaram Bhujagashayanam" },
+      { id: "vishnu-sahasranama",     title: "Vishnu Sahasranama" },
+      { id: "achyutam-keshavam",      title: "Achyutam Keshavam" },
+      { id: "om-namo-narayanaya",     title: "Om Namo Narayanaya" },
+      { id: "vishnu-shatpadi",        title: "Vishnu Shatpadi" },
+      { id: "mukunda-mala",           title: "Mukunda Mala" },
+      { id: "krishna-ashtakam",       title: "Krishna Ashtakam" },
+      { id: "madhurashtakam",         title: "Madhurashtakam" },
+      { id: "damodarashtakam",        title: "Damodarashtakam" },
+      { id: "vishnu-panjaram",        title: "Vishnu Panjaram" },
+    ]
+  },
+  {
+    id: "krishna",
+    icon: "🦚",
+    label: "Krishna",
+    deity: "Krishna",
+    stubs: [
+      { id: "krishna-smarana",        title: "Krishna Smarana" },
+      { id: "vasudeva-sutam-devam",   title: "Vasudeva Sutam Devam" },
+      { id: "kasturi-tilakam",        title: "Kasturi Tilakam" },
+      { id: "madhurashtakam",         title: "Madhurashtakam" },
+      { id: "govindashtakam",         title: "Govindashtakam" },
+      { id: "achyutam-keshavam",      title: "Achyutam Keshavam" },
+      { id: "hare-krishna-mahamantra",title: "Hare Krishna Mahamantra" },
+      { id: "bhagavad-gita-dhyanam",  title: "Bhagavad Gita Dhyanam" },
+    ]
+  },
+  {
+    id: "rama",
+    icon: "🏹",
+    label: "Rama",
+    deity: "Rama",
+    stubs: [
+      { id: "rama-rameti",            title: "Rama Rameti" },
+      { id: "rama-raksha-stotram",    title: "Rama Raksha Stotram" },
+      { id: "ramashtakam",            title: "Ramashtakam" },
+      { id: "shri-rama-jaya-rama",    title: "Shri Rama Jaya Rama Jaya Jaya Rama" },
+      { id: "sita-rama-nama",         title: "Sita Rama Nama" },
+      { id: "rama-mangalashasanam",   title: "Rama Mangalashasanam" },
+      { id: "ramachandra-ashtakam",   title: "Ramachandra Ashtakam" },
+      { id: "ramachandra-kripalu",    title: "Ramachandra Kripalu" },
+    ]
+  },
+  {
+    id: "hanuman",
+    icon: "🚩",
+    label: "Hanuman",
+    deity: "Hanuman",
+    stubs: [
+      { id: "manojavam",                       title: "Manojavam Marutatulyavegam" },
+      { id: "buddhir-balam",                   title: "Buddhir Balam Yasho Dhairyam" },
+      { id: "om-hanumate-namah",               title: "Om Hanumate Namah" },
+      { id: "om-ham-hanumate-namah",           title: "Om Ham Hanumate Namah" },
+      { id: "hanuman-gayatri",                 title: "Hanuman Gayatri" },
+      { id: "anjaneya-dhyana",                 title: "Anjaneya Dhyana" },
+      { id: "yatra-yatra-raghunatha",          title: "Yatra Yatra Raghunatha Kirtanam" },
+      { id: "sankatamochana-ashtakam",         title: "Sankatamochana Hanuman Ashtakam" },
+      { id: "hanuman-chalisa",                 title: "Hanuman Chalisa" },
+      { id: "hanumad-raksha-stotram",          title: "Hanumad Raksha Stotram" },
+      { id: "anjaneya-bhujangaprayata",        title: "Anjaneya Bhujangaprayata Stotram" },
+      { id: "hanuman-suktam",                  title: "Hanuman Suktam" },
+    ]
+  },
+  {
+    id: "devi",
+    icon: "🌺",
+    label: "Devi / Shakti",
+    deity: "Devi / Durga",
+    stubs: [
+      { id: "sarva-mangala-mangalye",       title: "Sarva Mangala Mangalye" },
+      { id: "devi-kavacham",                title: "Devi Kavacham" },
+      { id: "argala-stotram",               title: "Argala Stotram" },
+      { id: "mahishasura-mardini",          title: "Mahishasura Mardini Stotram" },
+      { id: "devi-aparadha-kshamapana",     title: "Devi Aparadha Kshamapana Stotram" },
+      { id: "lalita-pancharatnam",          title: "Lalita Pancharatnam" },
+      { id: "ya-devi-sarvabhuteshu",        title: "Ya Devi Sarvabhuteshu" },
+      { id: "devi-suktam",                  title: "Devi Suktam" },
+      { id: "narayani-stuti",               title: "Narayani Stuti" },
+      { id: "durga-32-names",               title: "Durga 32 Names" },
+      { id: "devi-mahatmyam",               title: "Devi Mahatmyam / Durga Saptashati" },
+      { id: "lalita-sahasranama",           title: "Lalita Sahasranama" },
+    ]
+  },
+  {
+    id: "saraswati",
+    icon: "📚",
+    label: "Saraswati / Vidya",
+    deity: "Saraswati",
+    stubs: [
+      { id: "ya-kundendu",                  title: "Ya Kundendu Tusharahara" },
+      { id: "saraswati-namastubhyam",       title: "Saraswati Namastubhyam" },
+      { id: "om-aim-sarasvatyai",           title: "Om Aim Sarasvatyai Namah" },
+      { id: "saraswati-mahabhage",          title: "Saraswati Mahabhage" },
+      { id: "shuklam-brahmavicharasaram",   title: "Shuklam Brahmavicharasaram" },
+      { id: "saraswati-stotram",            title: "Saraswati Stotram" },
+      { id: "saraswati-ashtakam",           title: "Saraswati Ashtakam" },
+      { id: "saraswati-bhujangaprayata",    title: "Saraswati Bhujangaprayata" },
+      { id: "saraswati-kavacham",           title: "Saraswati Kavacham" },
+      { id: "saraswati-suktam",             title: "Saraswati Suktam" },
+      { id: "saraswati-suprabhatam",        title: "Saraswati Suprabhatam" },
+      { id: "saraswati-sahasranama",        title: "Saraswati Sahasranama" },
+    ]
+  },
+  {
+    id: "lakshmi",
+    icon: "💰",
+    label: "Lakshmi / Prosperity",
+    deity: "Lakshmi",
+    stubs: [
+      { id: "mahalakshmi-mantra",           title: "Mahalakshmi Mantra" },
+      { id: "mahalakshmi-ashtakam",         title: "Mahalakshmi Ashtakam" },
+      { id: "kanakadhara-stotram",          title: "Kanakadhara Stotram" },
+      { id: "ashta-lakshmi-stotram",        title: "Ashta Lakshmi Stotram" },
+      { id: "dhanya-lakshmi",               title: "Dhanya Lakshmi" },
+      { id: "gaja-lakshmi",                 title: "Gaja Lakshmi" },
+      { id: "lakshmi-dvadashanama",         title: "Lakshmi Dvadashanama" },
+      { id: "sri-suktam",                   title: "Sri Suktam" },
+      { id: "sri-stotram",                  title: "Sri Stotram" },
+      { id: "mahalakshmi-kavacham",         title: "Mahalakshmi Kavacham" },
+      { id: "lakshmi-ashtottara",           title: "Lakshmi Ashtottara Shatanamavali" },
+    ]
+  },
+  {
+    id: "before-food",
+    icon: "🍚",
+    label: "Before Food",
+    stubs: [
+      { id: "brahmarpanam",                 title: "Brahmarpanam" },
+      { id: "aham-vaishvanaro",             title: "Aham Vaishvanaro Bhutva" },
+      { id: "annapurne-sadapurne",          title: "Annapurne Sadapurne" },
+      { id: "anna-brahma",                  title: "Anna Brahma" },
+      { id: "yat-karoshi",                  title: "Yat Karoshi Yad Ashnasi" },
+      { id: "om-saha-navavatu",             title: "Om Saha Navavatu" },
+    ]
+  },
+  {
+    id: "before-study",
+    icon: "📖",
+    label: "Before Study / Learning",
+    stubs: [
+      { id: "saraswati-namastubhyam",       title: "Saraswati Namastubhyam" },
+      { id: "ya-kundendu",                  title: "Ya Kundendu" },
+      { id: "hayagriva-dhyana",             title: "Hayagriva Dhyana" },
+      { id: "hayagriva-stotram",            title: "Hayagriva Stotram" },
+      { id: "vakratunda-mahakaya",          title: "Vakratunda Mahakaya" },
+      { id: "om-aim-sarasvatyai",           title: "Om Aim Sarasvatyai Namah" },
+      { id: "ya-devi-vidyarupena",          title: "Ya Devi Sarvabhuteshu Vidyarupena" },
+      { id: "gurur-brahma",                 title: "Gurur Brahma" },
+      { id: "medha-sukta",                  title: "Medha Sukta" },
+      { id: "gayatri",                      title: "Gayatri Mantra" },
+    ]
+  },
+  {
+    id: "guru",
+    icon: "🪔",
+    label: "Guru",
+    stubs: [
+      { id: "gurur-brahma",                 title: "Gurur Brahma" },
+      { id: "akhanda-mandalakaram",         title: "Akhanda Mandalakaram" },
+      { id: "ajnana-timirandhasya",         title: "Ajnana Timirandhasya" },
+      { id: "tvameva-mata",                 title: "Tvameva Mata" },
+      { id: "guru-paduka-stotram",          title: "Guru Paduka Stotram" },
+      { id: "guru-paduka-panchakam",        title: "Guru Paduka Panchakam" },
+      { id: "guru-gita",                    title: "Guru Gita" },
+      { id: "dakshinamurti-stotram",        title: "Dakshinamurti Stotram" },
+      { id: "dakshinamurti-dhyana",         title: "Dakshinamurti Dhyana" },
+      { id: "guru-ashtakam",                title: "Guru Ashtakam" },
+      { id: "bhaja-govindam",               title: "Bhaja Govindam" },
+    ]
+  },
+  {
+    id: "protection",
+    icon: "🛡️",
+    label: "Protection / Raksha",
+    stubs: [
+      { id: "narayana-kavacham",            title: "Narayana Kavacham" },
+      { id: "narasimha-kavacham",           title: "Narasimha Kavacham" },
+      { id: "devi-kavacham",                title: "Devi Kavacham" },
+      { id: "hanumad-raksha-stotram",       title: "Hanumad Raksha Stotram" },
+      { id: "shiva-raksha-stotram",         title: "Shiva Raksha Stotram" },
+      { id: "shiva-kavacham",               title: "Shiva Kavacham" },
+      { id: "durga-kavacham",               title: "Durga Kavacham" },
+      { id: "navagraha-kavacham",           title: "Navagraha Kavacham" },
+      { id: "aditya-kavacham",              title: "Aditya Kavacham" },
+      { id: "apadam-apahartaram",           title: "Apadam Apahartaram" },
+      { id: "sarva-mangala-mangalye",       title: "Sarva Mangala Mangalye" },
+      { id: "mahamrityunjaya",              title: "Mahamrityunjaya Mantra" },
+      { id: "sudarshanashtakam",            title: "Sudarshanashtakam" },
+    ]
+  },
+  {
+    id: "surya",
+    icon: "☀️",
+    label: "Surya",
+    deity: "Surya",
+    stubs: [
+      { id: "aditya-hridayam",              title: "Aditya Hridayam" },
+      { id: "surya-namaskara-mantras",      title: "Surya Namaskara 12 Mantras" },
+      { id: "om-adityaya-namah",            title: "Om Adityaya Namah" },
+      { id: "om-suryaya-namah",             title: "Om Suryaya Namah" },
+      { id: "japakusuma-sankasham",         title: "Japakusuma Sankasham" },
+      { id: "surya-ashtakam",               title: "Surya Ashtakam" },
+      { id: "surya-ashtottara",             title: "Surya Ashtottara Shatanama" },
+      { id: "surya-sahasranama",            title: "Surya Sahasranama" },
+      { id: "aditya-kavacham",              title: "Aditya Kavacham" },
+      { id: "surya-gayatri",                title: "Surya Gayatri" },
+      { id: "namah-savitre",                title: "Namah Savitre Jagadeka Chakshushe" },
+    ]
+  },
+  {
+    id: "navagraha",
+    icon: "🪐",
+    label: "Navagraha",
+    stubs: [
+      { id: "navagraha-dhyana-stotram",     title: "Navagraha Dhyana Stotram" },
+      { id: "navagraha-japa-mantras",       title: "Navagraha Japa Mantras" },
+      { id: "navagraha-namaskara",          title: "Navagraha Namaskara" },
+      { id: "navagraha-stotram",            title: "Navagraha Stotram" },
+      { id: "navagraha-kavacham",           title: "Navagraha Kavacham" },
+      { id: "navagraha-gayatri",            title: "Navagraha Gayatri" },
+      { id: "chandra-mantras",              title: "Chandra Mantras" },
+      { id: "mangala-mantras",              title: "Mangala Mantras" },
+      { id: "budha-mantras",                title: "Budha Mantras" },
+      { id: "guru-brihaspati-mantras",      title: "Guru / Brihaspati Mantras" },
+      { id: "shukra-mantras",               title: "Shukra Mantras" },
+      { id: "shani-mantras",                title: "Shani Mantras" },
+      { id: "rahu-mantras",                 title: "Rahu Mantras" },
+      { id: "ketu-mantras",                 title: "Ketu Mantras" },
+    ]
+  },
+  {
+    id: "evening",
+    icon: "🌙",
+    label: "Evening / Sandhya",
+    stubs: [
+      { id: "shubham-karoti",               title: "Shubham Karoti Kalyanam" },
+      { id: "deepa-jyoti-parabrahma",       title: "Deepa Jyoti Parabrahma" },
+      { id: "karpura-gauram",               title: "Karpura Gauram" },
+      { id: "sarva-mangala-mangalye",       title: "Sarva Mangala Mangalye" },
+      { id: "apadam-apahartaram",           title: "Apadam Apahartaram" },
+      { id: "krishna-smarana",              title: "Krishna Smarana" },
+      { id: "gayatri",                      title: "Gayatri Mantra" },
+      { id: "om-saha-navavatu",             title: "Om Saha Navavatu" },
+      { id: "om-shanti-shanti",             title: "Om Shanti Shanti Shanti" },
+      { id: "evening-aarti",                title: "Evening Aarti Collection" },
+    ]
+  },
+  {
+    id: "sleep",
+    icon: "🌙",
+    label: "Before Sleep",
+    stubs: [
+      { id: "karacharana-kritam",           title: "Karacharana Kritam" },
+      { id: "rama-skanda-hanuman-bedtime",  title: "Rama–Skanda–Hanuman Bedtime Prayer" },
+      { id: "krishna-smarana",              title: "Krishna Smarana" },
+      { id: "rama-nama-smarana",            title: "Rama Nama Smarana" },
+      { id: "hanuman-smarana",              title: "Hanuman Smarana" },
+      { id: "deepa-jyoti-parabrahma",       title: "Deepa Jyoti" },
+      { id: "shanti-mantra",                title: "Shanti Mantra" },
+      { id: "one-minute-bedtime",           title: "One-Minute Bedtime Prayer" },
+    ]
+  },
+  {
+    id: "universal",
+    icon: "🙏",
+    label: "Universal / Shanti",
+    stubs: [
+      { id: "gayatri",                      title: "Gayatri Mantra" },
+      { id: "asato-ma-sadgamaya",           title: "Asato Ma Sadgamaya" },
+      { id: "sarve-bhavantu-sukhinah",      title: "Sarve Bhavantu Sukhinah" },
+      { id: "sarvesham-svastir",            title: "Sarvesham Svastir Bhavatu" },
+      { id: "lokah-samastah",               title: "Lokah Samastah Sukhino Bhavantu" },
+      { id: "purnamadah",                   title: "Purnamadah Purnamidam" },
+      { id: "om-saha-navavatu",             title: "Om Saha Navavatu" },
+      { id: "om-dyauh-shantih",             title: "Om Dyauh Shantih" },
+      { id: "mahamrityunjaya",              title: "Mahamrityunjaya Mantra" },
+      { id: "om-shanti-shanti",             title: "Om Shanti Shanti Shanti" },
+    ]
+  },
+  {
+    id: "major-stotras",
+    icon: "📜",
+    label: "Major Stotras",
+    stubs: [
+      { id: "ganapati-atharvashirsha",      title: "Ganapati Atharvashirsha" },
+      { id: "ganesha-pancharatnam",         title: "Ganesha Pancharatnam" },
+      { id: "shiva-panchakshara-stotram",   title: "Shiva Panchakshara Stotram" },
+      { id: "lingashtakam",                 title: "Lingashtakam" },
+      { id: "bilvashtakam",                 title: "Bilvashtakam" },
+      { id: "shiva-manasa-puja",            title: "Shiva Manasa Puja" },
+      { id: "rudrashtakam",                 title: "Rudrashtakam" },
+      { id: "shiva-tandava-stotram",        title: "Shiva Tandava Stotram" },
+      { id: "shiva-mahimna-stotram",        title: "Shiva Mahimna Stotram" },
+      { id: "vishnu-sahasranama",           title: "Vishnu Sahasranama" },
+      { id: "vishnu-shatpadi",              title: "Vishnu Shatpadi" },
+      { id: "achyutam-keshavam",            title: "Achyutashtakam" },
+      { id: "mukunda-mala",                 title: "Mukunda Mala" },
+      { id: "madhurashtakam",               title: "Madhurashtakam" },
+      { id: "damodarashtakam",              title: "Damodarashtakam" },
+      { id: "rama-raksha-stotram",          title: "Rama Raksha Stotram" },
+      { id: "ramashtakam",                  title: "Ramashtakam" },
+      { id: "ramachandra-ashtakam",         title: "Ramachandra Ashtakam" },
+      { id: "hanuman-chalisa",              title: "Hanuman Chalisa" },
+      { id: "sankatamochana-ashtakam",      title: "Sankatamochana Hanuman Ashtakam" },
+      { id: "anjaneya-bhujangaprayata",     title: "Hanuman Bhujangaprayata Stotram" },
+      { id: "devi-mahatmyam",               title: "Devi Mahatmyam / Durga Saptashati" },
+      { id: "lalita-sahasranama",           title: "Lalita Sahasranama" },
+      { id: "mahishasura-mardini",          title: "Mahishasura Mardini Stotram" },
+      { id: "devi-aparadha-kshamapana",     title: "Devi Aparadha Kshamapana Stotram" },
+      { id: "kanakadhara-stotram",          title: "Kanakadhara Stotram" },
+      { id: "ashta-lakshmi-stotram",        title: "Ashta Lakshmi Stotram" },
+      { id: "sri-suktam",                   title: "Sri Suktam" },
+      { id: "saraswati-ashtakam",           title: "Saraswati Ashtakam" },
+      { id: "saraswati-sahasranama",        title: "Saraswati Sahasranama" },
+      { id: "hayagriva-stotram",            title: "Hayagriva Stotram" },
+      { id: "guru-gita",                    title: "Guru Gita" },
+      { id: "guru-paduka-stotram",          title: "Guru Paduka Stotram" },
+      { id: "dakshinamurti-stotram",        title: "Dakshinamurti Stotram" },
+      { id: "bhaja-govindam",               title: "Bhaja Govindam" },
+      { id: "aditya-hridayam",              title: "Aditya Hridayam" },
+      { id: "surya-ashtakam",               title: "Surya Ashtakam" },
+      { id: "surya-sahasranama",            title: "Surya Sahasranama" },
+      { id: "navagraha-stotram",            title: "Navagraha Stotram" },
+    ]
+  },
+];
 
-  /* ═══════════════════ DAILY MANTRAS ═══════════════════ */
+/* ─────────────────────────────────────────────────────
+   PLACEHOLDER helper — returns a "content pending" stub entry
+───────────────────────────────────────────────────── */
+function _stub(id, englishTitle, deity, tags) {
+  return {
+    id, deity: deity || "Universal", tags: tags || [],
+    repetitions: "—", timing: "—", status: "stub",
+    odia:    { title: englishTitle, text: "— ବିଷୟବସ୍ତୁ ଶୀଘ୍ର ଆସୁଛି —" },
+    hindi:   { title: englishTitle, text: "— सामग्री शीघ्र आ रही है —" },
+    english: { title: englishTitle, text: "— Content coming soon —" },
+    meaning: { odia: "", hindi: "", english: "" },
+    benefits: ""
+  };
+}
 
+/* ─────────────────────────────────────────────────────
+   MANTRAS ARRAY  — full entries + auto-generated stubs
+   Full entries appear first; stubs are generated from the
+   SECTIONS catalog for any id not already present.
+───────────────────────────────────────────────────── */
+const MANTRAS_FULL = [
+
+  /* ═══════════ FULL ENTRIES (trilingual content present) ═══════════ */
+
+  /* ── 1. Gayatri ── */
   {
     id: "gayatri",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Gayatri",
     deity: "Surya / Brahman",
-    tags: ["morning", "daily", "universal"],
+    tags: ["morning", "daily", "universal", "sadhana"],
     repetitions: "108 / 1008",
     timing: "Sunrise, Noon, Sunset (Sandhya)",
+    status: "full",
     odia: {
       title: "ଗାୟତ୍ରୀ ମନ୍ତ୍ର",
       text: "ଓଁ ଭୂର୍ଭୁବଃ ସ୍ୱଃ\nତତ୍ ସବିତୁର୍ ବରେଣ୍ୟଂ\nଭର୍ଗୋ ଦେବସ୍ୟ ଧୀମହି\nଧିୟୋ ୟୋ ନଃ ପ୍ରଚୋଦୟାତ୍ ॥"
@@ -31,28 +448,24 @@ const MANTRAS = [
       text: "Om Bhur Bhuvah Svah\nTat Savitur Varenyam\nBhargo Devasya Dhimahi\nDhiyo Yo Nah Prachodayat ||"
     },
     meaning: {
-      odia: "ଆମେ ସେହି ଦିବ୍ୟ ଆଲୋକ ଉପରେ ଧ୍ୟାନ ଦେଉ ଯାହା ଭୂ, ଭୁବ ଏବଂ ସ୍ୱ — ତ୍ରିଲୋକ ଆଲୋକ ଦେଉଛି। ଆମ ବୁଦ୍ଧିକୁ ସଠିକ ପଥ ପ୍ରଦର୍ଶ‍ନ କରୁ।",
+      odia: "ଆମେ ସେହି ଦିବ୍ୟ ଆଲୋକ ଉପରେ ଧ୍ୟାନ ଦେଉ ଯାହା ଭୂ, ଭୁବ ଏବଂ ସ୍ୱ — ତ୍ରିଲୋକ ଆଲୋକ ଦେଉଛି। ଆମ ବୁଦ୍ଧିକୁ ସଠିକ ପଥ ପ୍ରଦର୍ଶନ କରୁ।",
       hindi: "हम उस दिव्य प्रकाश का ध्यान करते हैं जो तीनों लोकों में व्याप्त है और जो हमारी बुद्धि को सन्मार्ग पर प्रेरित करे।",
-      english: "We meditate on the divine light of the Sun that pervades the three worlds — Bhu (Earth), Bhuva (Atmosphere), and Svah (Heaven). May that divine light illuminate and guide our intellect."
+      english: "We meditate on the divine light of the Sun that pervades the three worlds. May that divine light illuminate and guide our intellect."
     },
-    benefits: "Illumines intellect, removes ignorance, bestows wisdom, purifies mind, grants liberation.",
-    featured: true,
-    morning: true,
-    evening: true
+    benefits: "Illumines intellect, removes ignorance, bestows wisdom, purifies mind.",
+    featured: true, morning: true, evening: true
   },
 
   {
     id: "mahamrityunjaya",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Maha Mrityunjaya",
     deity: "Shiva",
-    tags: ["healing", "protection", "moksha"],
+    tags: ["healing", "protection", "moksha", "shiva"],
     repetitions: "108",
     timing: "Morning or Evening",
+    status: "full",
     odia: {
       title: "ମହାମୃତ୍ୟୁଞ୍ଜୟ ମନ୍ତ୍ର",
-      text: "ଓଁ ତ୍ର୍ୟ‍ମ୍ବକଂ ୟଜାମହେ\nସୁଗନ୍ଧିଂ ପୁଷ୍ଟିବର୍ଧ‍ନଂ ।\nଉର୍ବ‍ାରୁ‍କ‍ ମ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍\nଉର୍ବ‍ାରୁ‍କ‍ ମ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍\nଓଁ ତ୍ର୍ୟ‍ ‌ ‌\nଓଁ ତ୍ର୍ୟ‍ ‌\nଉର୍ବ‍ ‌\nଓଁ ତ୍ର୍ ‌"
+      text: "ଓଁ ତ୍ର୍ୟମ୍ବକଂ ୟଜାମହେ\nସୁଗନ୍ଧିଂ ପୁଷ୍ଟିବର୍ଦ୍ଧନମ୍ ।\nଉର୍ବ୍ବାରୁକମିବ ବନ୍ଧନାତ୍\nମୃତ୍ୟୋର୍ ମୁକ୍ଷୀୟ ମାଽମୃତାତ୍ ॥"
     },
     hindi: {
       title: "महामृत्युञ्जय मंत्र",
@@ -63,809 +476,805 @@ const MANTRAS = [
       text: "Om Tryambakam Yajamahe\nSugandhim Pushtivardhanam |\nUrvarukamiva Bandhanat\nMrityor Mukshiya Maamritat ||"
     },
     meaning: {
-      odia: "ଆମେ ତ୍ରିନୟନ ଭଗବାନ ଶିବଙ୍କ ପୂଜା କରୁ, ଯେ ସୁଗନ୍ଧ ଓ ପୁଷ୍ଟି ଦାୟକ। ଯେପରି ଶଶା ଲତାରୁ ଛୁଟିଯାଏ, ସେହିପରି ଆମ‍କୁ ମୃତ୍ୟୁ ବନ୍ଧ‍ନରୁ ମୁ‍କ୍ ‌ ‌ ‌।",
-      hindi: "हम तीन नेत्रों वाले भगवान शिव की पूजा करते हैं। जैसे ककड़ी अपनी बेल से मुक्त होती है, वैसे ही हमें मृत्यु के बंधन से मुक्त करो।",
-      english: "We worship the three-eyed Shiva. Just as a ripe cucumber is freed from its vine, may He liberate us from the bondage of death, granting immortality."
+      odia: "ଆମେ ତ୍ରିନୟନ ଭଗବାନ ଶିବଙ୍କ ପୂଜା କରୁ। ଶଶା ଯେପରି ଲତାରୁ ଛୁଟୁଯାଏ, ସେହିପରି ଆମକୁ ମୃତ୍ୟୁ ବନ୍ଧନରୁ ମୁକ୍ତ କର।",
+      hindi: "हम तीन नेत्रों वाले भगवान शिव की पूजा करते हैं। जैसे ककड़ी अपनी बेल से मुक्त होती है, वैसे हमें मृत्यु से मुक्त करो।",
+      english: "We worship three-eyed Shiva. Just as a ripe cucumber is freed from its vine, may He liberate us from death, granting immortality."
     },
     benefits: "Heals illness, removes fear of death, bestows long life, protection, liberation.",
-    featured: true,
-    morning: true,
-    evening: true
+    featured: true, morning: true, evening: true
   },
 
   {
-    id: "hanuman-beej",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Hanuman",
-    deity: "Hanuman",
-    tags: ["strength", "protection", "courage", "tuesday"],
-    repetitions: "108",
-    timing: "Tuesday, Saturday, Morning",
-    odia: {
-      title: "ହନୁମାନ ବୀଜ ମନ୍ତ୍ର",
-      text: "ଓଁ ଐଂ ଭ୍ରୀଂ ହନୁମତେ\nରାମଦୂ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "हनुमान बीज मंत्र",
-      text: "ॐ ऐं भ्रीं हनुमते\nरामदूताय नमः ॥"
-    },
-    english: {
-      title: "Hanuman Beej Mantra",
-      text: "Om Aim Bhrim Hanumate\nRama Dutaya Namah ||"
-    },
-    meaning: {
-      odia: "ଭଗବାନ ରାମଙ୍କ ଦୂ‍ ‌ ‌ ‌ ‌ ‌।",
-      hindi: "भगवान राम के दूत हनुमान जी को प्रणाम।",
-      english: "Salutations to Hanuman, the divine messenger of Lord Rama."
-    },
-    benefits: "Strength, courage, removes obstacles, protection from negative forces.",
-    morning: true
-  },
-
-  {
-    id: "hanuman-moola",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Hanuman",
-    deity: "Hanuman",
-    tags: ["strength", "devotion", "protection"],
-    repetitions: "108",
-    timing: "Daily, especially Tuesday and Saturday",
-    odia: {
-      title: "ହନୁମାନ ଗାୟ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ଅଞ୍ଜ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌\nବାୟୁ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌\nତ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "हनुमान गायत्री मंत्र",
-      text: "ॐ अञ्जनिसुताय विद्महे\nवायुपुत्राय धीमहि ।\nतन्नो हनुमत् प्रचोदयात् ॥"
-    },
-    english: {
-      title: "Hanuman Gayatri Mantra",
-      text: "Om Anjanisutaya Vidmahe\nVayuputraya Dhimahi |\nTanno Hanumat Prachodayat ||"
-    },
-    meaning: {
-      odia: "ଆମ‍ ‌ ‌ ‌ ‌ ‌।",
-      hindi: "हम अंजनी के पुत्र हनुमान जी को जानते हैं, वायु के पुत्र का ध्यान करते हैं।",
-      english: "We know the son of Anjani, we meditate on the son of Vayu. May that Hanuman inspire and guide us."
-    },
-    benefits: "Removes fear, grants courage, intelligence, and devotion to the Lord."
-  },
-
-  {
-    id: "shiva-panchakshara",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Shiva",
-    deity: "Shiva",
-    tags: ["liberation", "purification", "monday"],
-    repetitions: "108 / 1008",
-    timing: "Morning, Monday, Pradosha",
-    odia: {
-      title: "ଶିବ ପଞ୍ଚାକ୍ଷ‍ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ନମଃ ଶ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "शिव पञ्चाक्षर मंत्र",
-      text: "ॐ नमः शिवाय ॥"
-    },
-    english: {
-      title: "Shiva Panchakshara Mantra",
-      text: "Om Namah Shivaya ||"
-    },
-    meaning: {
-      odia: "ଭ‍ ‌ ‌ ‌ ‌ ‌।",
-      hindi: "भगवान शिव को नमस्कार। 'न', 'म', 'शि', 'वा', 'य' — ये पाँच अक्षर पृथ्वी, जल, अग्नि, वायु और आकाश के प्रतीक हैं।",
-      english: "Salutations to Shiva. The five syllables Na-Ma-Shi-Va-Ya represent the five elements: Earth, Water, Fire, Air and Ether."
-    },
-    benefits: "Liberation from the cycle of birth and death, purification of the five elements, inner peace.",
-    featured: true,
-    morning: true,
-    evening: true
-  },
-
-  {
-    id: "vishnu-ashtakshara",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Vishnu",
-    deity: "Vishnu",
-    tags: ["protection", "liberation", "thursday"],
-    repetitions: "108",
-    timing: "Morning, Ekadashi, Thursday",
-    odia: {
-      title: "ଅଷ୍ଟ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ନମୋ ନ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "अष्टाक्षर मंत्र (विष्णु)",
-      text: "ॐ नमो नारायणाय ॥"
-    },
-    english: {
-      title: "Ashtakshara Mantra — Vishnu",
-      text: "Om Namo Narayanaya ||"
-    },
-    meaning: {
-      odia: "ଭ‍ ‌ ‌ ‌ ‌ ‌।",
-      hindi: "भगवान नारायण को नमस्कार। सर्वव्यापी परमात्मा की उपासना।",
-      english: "Salutations to Narayana, the all-pervading Supreme Being who is the resting place of all creation."
-    },
-    benefits: "Protection, liberation, removal of all sins, bestows devotion and peace."
-  },
-
-  {
-    id: "ganesha-moola",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Ganesha",
-    deity: "Ganesha",
-    tags: ["new-beginning", "obstacles", "auspicious"],
-    repetitions: "108",
-    timing: "Before any new work, morning, Wednesday",
-    odia: {
-      title: "ଗଣ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ଗଂ ଗଣ‍ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "गणेश मूल मंत्र",
-      text: "ॐ गं गणपतये नमः ॥"
-    },
-    english: {
-      title: "Ganesha Mool Mantra",
-      text: "Om Gam Ganapataye Namah ||"
-    },
-    meaning: {
-      odia: "ଗ‍ ‌ ‌ ‌ ‌।",
-      hindi: "गणों के स्वामी गणपति को नमस्कार।",
-      english: "Salutations to Ganesha, the lord of all Ganas (celestial attendants), remover of obstacles."
-    },
-    benefits: "Removes obstacles, brings success, auspicious beginnings, wisdom.",
-    featured: true,
-    morning: true
-  },
-
-  {
-    id: "ganesha-vakratunda",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Ganesha",
-    deity: "Ganesha",
-    tags: ["obstacles", "wisdom"],
-    repetitions: "21 / 108",
-    timing: "Morning, before new work",
-    odia: {
-      title: "ବକ୍ରତୁ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ବକ୍ରତୁ‍ ‌ ‌ ‌ ‌ ‌ ‌\nସୂର୍ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "वक्रतुण्ड श्लोक",
-      text: "वक्रतुण्ड महाकाय\nसूर्यकोटि समप्रभ ।\nनिर्विघ्नं कुरु मे देव\nसर्वकार्येषु सर्वदा ॥"
-    },
-    english: {
-      title: "Vakratunda Shloka (Ganesha)",
-      text: "Vakratunda Mahakaya\nSurya Koti Samaprabha |\nNirvighnam Kuru Me Deva\nSarva Karyeshu Sarvada ||"
-    },
-    meaning: {
-      odia: "ହ‍ ‌ ‌ ‌ ‌।",
-      hindi: "हे टेढ़ी सूँड और विशाल शरीर वाले देव — मेरे समस्त कार्यों में सदैव विघ्नों को दूर करें।",
-      english: "O Lord with a curved trunk and massive body, whose brilliance equals a billion suns — always remove all obstacles from all my endeavours."
-    },
-    benefits: "Removes obstacles, success in all works, auspicious beginnings."
-  },
-
-  {
-    id: "devi-navarna",
-    section: "mantras",
-    category: "Daily Mantras",
-    subcategory: "Devi",
-    deity: "Durga / Shakti",
-    tags: ["shakti", "protection", "navratri"],
-    repetitions: "108",
-    timing: "Morning, Navratri, Friday",
-    odia: {
-      title: "ନ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ଐଂ ହ୍ରୀଂ କ୍ଲୀଂ\nଚ‍ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "नवार्ण मंत्र (नवदुर्गा)",
-      text: "ॐ ऐं ह्रीं क्लीं\nचामुण्डायै विच्चे ॥"
-    },
-    english: {
-      title: "Navarna Mantra (Devi)",
-      text: "Om Aim Hrim Klim\nChamundayai Vicche ||"
-    },
-    meaning: {
-      odia: "ଏ ‌ ‌ ‌ ‌ ‌।",
-      hindi: "इन नौ अक्षरों में सरस्वती (ऐं), लक्ष्मी (ह्रीं) और दुर्गा (क्लीं) की शक्तियाँ समाहित हैं।",
-      english: "These nine syllables contain the powers of Saraswati (Aim), Lakshmi (Hrim), and Durga (Klim). Worship of the goddess Chamunda."
-    },
-    benefits: "Divine protection, power, liberation from evil, shakti awakening."
-  },
-
-  /* ═══════════════════ DAILY SLOKAS ═══════════════════ */
-
-  {
-    id: "morning-awakening",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Morning Awakening",
+    id: "kara-darshana",
     deity: "Lakshmi / Saraswati / Vishnu",
     tags: ["morning", "awakening", "daily"],
-    repetitions: "1 (upon waking)",
+    repetitions: "1",
     timing: "Upon waking, before rising from bed",
+    status: "full",
     odia: {
-      title: "ପ୍ରାତଃ ସ୍ ‌ ‌ ‌ ‌ ‌",
-      text: "କ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "କର ଦର୍ଶନ ମନ୍ତ୍ର",
+      text: "ଓଁ କରାଗ୍ରେ ବସତେ ଲକ୍ଷ୍ମୀ\nକରମଧ୍ୟେ ସରସ୍ୱତୀ ।\nକରମୂଲେ ତୁ ଗୋବିନ୍ଦ\nପ୍ରଭାତେ କରଦର୍ଶନମ୍ ॥"
     },
     hindi: {
-      title: "प्रातः स्मरणम् (हाथ दर्शन)",
+      title: "कर दर्शन मंत्र",
       text: "ॐ कराग्रे वसते लक्ष्मीः\nकरमध्ये सरस्वती ।\nकरमूले तु गोविन्दः\nप्रभाते करदर्शनम् ॥"
     },
     english: {
-      title: "Morning Hand Prayer",
+      title: "Kara Darshana Mantra",
       text: "Om Karagre Vasate Lakshmi\nKaramadhye Saraswati |\nKaramule Tu Govinda\nPrabhate Karadarshanam ||"
     },
     meaning: {
-      odia: "ହ‍ ‌ ‌ ‌ ‌।",
-      hindi: "हाथ की उँगलियों के अग्रभाग में लक्ष्मी, मध्य में सरस्वती और मूल में गोविंद निवास करते हैं।",
-      english: "At the tip of the hand dwells Lakshmi; in the middle, Saraswati; at the base, Govinda. Therefore, one should look at one's hands at dawn each morning."
+      odia: "ହାତ ଆଙ୍ଗୁଳି ଅଗ୍ରରେ ଲକ୍ଷ୍ମୀ, ମଧ୍ୟରେ ସରସ୍ୱତୀ ଏବଂ ମୂଳରେ ଗୋବିନ୍ଦ ବାସ କରନ୍ତି। ଏଣୁ ପ୍ରଭାତରେ ହାତ ଦର୍ଶନ କରିବା ଉଚିତ।",
+      hindi: "हाथ के अग्रभाग में लक्ष्मी, मध्य में सरस्वती और मूल में गोविंद निवास करते हैं। इसलिए प्रातःकाल हाथों के दर्शन करने चाहिए।",
+      english: "At the fingertips dwells Lakshmi; in the middle, Saraswati; at the base, Govinda. Therefore look at your hands each morning."
     },
-    benefits: "Auspicious start to the day, gratitude, blessing of work done by the hands.",
+    benefits: "Auspicious start to the day, blessing for the hands and all actions.",
     morning: true
   },
 
   {
-    id: "before-food",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Before Food",
-    deity: "Brahman",
-    tags: ["food", "gratitude", "daily"],
-    repetitions: "1 (before eating)",
-    timing: "Before each meal",
+    id: "samudra-vasane",
+    deity: "Bhumi Devi / Prithvi",
+    tags: ["morning", "earth", "daily"],
+    repetitions: "1",
+    timing: "Before stepping on the ground in the morning",
+    status: "full",
     odia: {
-      title: "ଭ‍ ‌ ‌ ‌ ‌ ‌ ‌ (ଗ‍ ‌ ‌ ‌ ‌ 4.24)",
-      text: "ବ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ସମୁଦ୍ର ବସନେ ଦେବୀ",
+      text: "ସମୁଦ୍ର ବସନେ ଦେବି\nପର୍ବତ ସ୍ତନ ମଣ୍ଡଳେ ।\nବିଷ୍ଣୁ ପତ୍ନି ନମସ୍ତୁଭ୍ୟଂ\nପାଦ ସ୍ପର୍ଶଂ କ୍ଷମସ୍ୱ ମେ ॥"
     },
     hindi: {
-      title: "भोजन श्लोक (गीता 4.24)",
-      text: "ॐ ब्रह्मार्पणं ब्रह्म हविः\nब्रह्माग्नौ ब्रह्मणा हुतम् ।\nब्रह्मैव तेन गन्तव्यं\nब्रह्मकर्म समाधिना ॥"
+      title: "समुद्र वसने देवी",
+      text: "समुद्र वसने देवि\nपर्वत स्तन मण्डले ।\nविष्णु पत्नि नमस्तुभ्यं\nपाद स्पर्शं क्षमस्व मे ॥"
     },
     english: {
-      title: "Before-Food Shloka (Gita 4.24)",
-      text: "Om Brahmarpanam Brahma Havih\nBrahm Agnau Brahmana Hutam |\nBrahmaiva Tena Gantavyam\nBrahma Karma Samadhina ||"
+      title: "Samudra Vasane Devi",
+      text: "Samudra Vasane Devi\nParvata Stana Mandale |\nVishnu Patni Namastubhyam\nPada Sparsham Kshamasva Me ||"
     },
     meaning: {
-      odia: "ଅ‍ ‌ ‌ ‌ ‌ ‌।",
-      hindi: "अर्पण भी ब्रह्म है, हवि भी ब्रह्म है। ऐसे ब्रह्म-कर्म-समाधि वाले व्यक्ति को ब्रह्म ही प्राप्त होता है।",
-      english: "The act of offering is Brahman, the oblation is Brahman. Brahman alone is attained by one who thus sees Brahman in all action."
+      odia: "ହେ ଦେବୀ, ସମୁଦ୍ର ଯାହାର ବସ୍ତ୍ର ଏବଂ ପର୍ବତ ଯାହାର ସ୍ତନ — ହେ ବିଷ୍ଣୁ ପତ୍ନୀ, ଆପଣଙ୍କୁ ନମସ୍କାର। ମୋ ଚରଣ ସ୍ପର୍ଶ କ୍ଷମା କରନ୍ତୁ।",
+      hindi: "हे देवी, जिनका वस्त्र समुद्र और स्तन पर्वत हैं, हे विष्णु-पत्नी, आपको नमस्कार। मेरे चरण-स्पर्श को क्षमा करें।",
+      english: "O Goddess, whose garment is the ocean and whose breasts are the mountains, O consort of Vishnu — I salute you. Please forgive me for touching you with my feet."
     },
-    benefits: "Transforms eating into a sacred act, mindfulness, gratitude, purity."
+    benefits: "Respectful acknowledgement of Mother Earth, auspicious day-start.",
+    morning: true
   },
 
   {
-    id: "before-study",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Before Study / Work",
-    deity: "Saraswati",
-    tags: ["study", "knowledge", "work"],
-    repetitions: "1 (before starting)",
-    timing: "Before study, learning, or new work",
-    odia: {
-      title: "ସ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ସ‍ ‌ ‌ ‌ ‌ ‌ ‌\nବ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "सरस्वती विद्या श्लोक",
-      text: "ॐ सरस्वती महाभागे\nविद्ये कमललोचने ।\nविद्यारूपे विशालाक्षि\nविद्यां देहि नमोऽस्तु ते ॥"
-    },
-    english: {
-      title: "Saraswati Shloka (Before Study)",
-      text: "Om Saraswati Mahabhage\nVidye Kamalalo Chane |\nVidyarupe Vishalakshi\nVidyam Dehi Namo Stu Te ||"
-    },
-    meaning: {
-      odia: "ହ‍ ‌ ‌ ‌ ‌।",
-      hindi: "हे महाभाग्यशाली सरस्वती, हे कमल-नयनी — मुझे विद्या प्रदान करें।",
-      english: "O greatly blessed Saraswati, goddess of wisdom with lotus eyes — please grant me knowledge. Salutations to thee."
-    },
-    benefits: "Sharpens intellect, removes confusion, aids learning and memory."
-  },
-
-  {
-    id: "before-sleep",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Before Sleep",
-    deity: "Ratri Devi",
-    tags: ["evening", "sleep", "protection"],
-    repetitions: "1 (before sleeping)",
-    timing: "At bedtime",
-    odia: {
-      title: "ର‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ର‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "रात्रि सूक्तम् (निद्रा प्रार्थना)",
-      text: "ॐ रात्रिदेवी महामाये\nमहाविद्ये महाबले ।\nमहारात्रे महामाये\nसर्वरात्रे नमोऽस्तु ते ॥"
-    },
-    english: {
-      title: "Night Prayer (Before Sleep)",
-      text: "Om Ratridevi Mahamaye\nMahavidye Mahabale |\nMaharatre Mahamaye\nSarvaratre Namo Stu Te ||"
-    },
-    meaning: {
-      odia: "ହ‍ ‌ ‌ ‌ ‌।",
-      hindi: "हे महामाया रात्रिदेवी, महाविद्या और महाशक्ति — आपको नमस्कार।",
-      english: "Salutations to the goddess of the night, the great illusion, the great knowledge, the great power. O all-encompassing night — salutations."
-    },
-    benefits: "Protection during sleep, peaceful rest, dispels nightmares, divine blessings.",
-    evening: true
-  },
-
-  {
-    id: "ganesha-sloka",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Ganesha",
+    id: "vakratunda-mahakaya",
     deity: "Ganesha",
-    tags: ["obstacles", "auspicious", "morning"],
+    tags: ["morning", "ganesha", "obstacles", "study"],
     repetitions: "3 / 11",
-    timing: "Morning, before any new work",
+    timing: "Morning, before any new work or study",
+    status: "full",
     odia: {
-      title: "ଗ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ଗ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ବକ୍ରତୁଣ୍ଡ ମହାକାୟ",
+      text: "ବକ୍ରତୁଣ୍ଡ ମହାକାୟ\nସୂର୍ୟ୍ୟ‌କୋଟି ସମ‌ପ୍ରଭ ।\nନିର୍ବ୍ବିଘ୍ନଂ କୁରୁ ମେ ଦେବ\nସର୍ବ‌କାର୍ଯ୍ୟେଷୁ ସର୍ବ‌ଦା ॥"
     },
     hindi: {
-      title: "गणेश श्लोक",
-      text: "गजाननं भूतगणादिसेवितम्\nकपित्थजम्बूफलसारभक्षितम् ।\nउमासुतं शोकविनाशकारणम्\nनमामि विघ्नेश्वरपादपङ्कजम् ॥"
+      title: "वक्रतुण्ड महाकाय",
+      text: "वक्रतुण्ड महाकाय\nसूर्यकोटि समप्रभ ।\nनिर्विघ्नं कुरु मे देव\nसर्वकार्येषु सर्वदा ॥"
     },
     english: {
-      title: "Ganesha Shloka",
-      text: "Gajananam Bhutaganadi Sevitam\nKapittja Jambu Phala Sara Bhakshitam |\nUmasutam Shoka Vinasha Karanam\nNamami Vighnesvara Pada Pankajam ||"
+      title: "Vakratunda Mahakaya",
+      text: "Vakratunda Mahakaya\nSurya Koti Samaprabha |\nNirvighnam Kuru Me Deva\nSarva Karyeshu Sarvada ||"
     },
     meaning: {
-      odia: "ଉ‍ ‌ ‌ ‌ ‌।",
-      hindi: "हाथी मुख वाले, उमा के पुत्र, शोक का नाश करने वाले विघ्नेश्वर के चरण-कमल को मैं नमन करता हूँ।",
-      english: "I bow to the lotus feet of Vighnesvara — the elephant-faced one, son of Uma, destroyer of all sorrow."
+      odia: "ହେ ବଙ୍କ ଶୁଣ୍ଡ ଓ ମହାକାୟ ଦେବ, ଯାହାଙ୍କ ଦୀପ୍ତି କୋଟି ସୂର୍ୟ ସମ — ମୋ ସମସ୍ତ କାର୍ଯ୍ୟରୁ ସର୍ବ‌ଦା ବିଘ୍ନ ଦୂର କର।",
+      hindi: "हे टेढ़ी सूँड वाले महाकाय देव, जिनकी प्रभा करोड़ सूर्यों के समान है — मेरे सभी कार्यों में सदैव विघ्न दूर करें।",
+      english: "O Lord of curved trunk and great form, brilliant as a billion suns — always remove obstacles from all my endeavours."
     },
-    benefits: "Obstacle removal, auspicious beginning, removal of sorrow, success."
+    benefits: "Removes obstacles, auspicious beginning, success in all works.",
+    featured: true, morning: true
   },
 
   {
-    id: "saraswati-sloka",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Saraswati",
-    deity: "Saraswati",
-    tags: ["knowledge", "study", "wisdom"],
-    repetitions: "3",
-    timing: "Morning, before study or any creative work",
-    odia: {
-      title: "ସ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ୟ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "सरस्वती श्लोक (या कुन्देन्दु)",
-      text: "या कुन्देन्दु तुषारहार धवला\nया शुभ्रवस्त्रावृता ।\nया वीणावरदण्डमण्डितकरा\nया श्वेतपद्मासना ॥\nया ब्रह्माच्युतशङ्करप्रभृतिभिर्\nदेवैः सदा वन्दिता ।\nसा मां पातु सरस्वती भगवती\nनिःशेषजाड्यापहा ॥"
-    },
-    english: {
-      title: "Saraswati Shloka (Ya Kundendu)",
-      text: "Ya Kundhendu Tushara Hara Dhavala\nYa Shubhra Vastravrta |\nYa Vina Vara Danda Manditakara\nYa Shveta Padmasana ||\nYa Brahma Achyuta Shankara Prabhrtibhir\nDevai Sada Vandita |\nSa Mam Patu Saraswati Bhagavati\nNishesha Jadyapaha ||"
-    },
-    meaning: {
-      odia: "ଶ‍ ‌ ‌ ‌ ‌।",
-      hindi: "जो कुंद-पुष्प की तरह श्वेत हैं, वीणा से मण्डित हैं, श्वेत कमल पर विराजती हैं — वह समस्त जड़ता को हरने वाली सरस्वती मेरी रक्षा करें।",
-      english: "White as a kunda flower, hands adorned with the veena, seated on a white lotus — may that Saraswati, destroyer of all dullness, protect me."
-    },
-    benefits: "Bestows knowledge, clear speech, removes ignorance and dullness of mind."
-  },
-
-  {
-    id: "vishnu-sloka",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Vishnu",
+    id: "shantakaram",
     deity: "Vishnu",
-    tags: ["protection", "liberation"],
-    repetitions: "3 / 12",
+    tags: ["vishnu", "morning", "liberation"],
+    repetitions: "3",
     timing: "Morning or evening",
+    status: "full",
     odia: {
-      title: "ବ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ଶ‍ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ଶାନ୍ତାକାରଂ ଭୁଜଗଶୟନଂ",
+      text: "ଶାନ୍ତାକାରଂ ଭୁଜଗଶୟନଂ\nପଦ୍ମନାଭଂ ସୁରେଶମ୍ ।\nବିଶ୍ୱାଧାରଂ ଗଗନସଦୃଶଂ\nମେଘ‌ବର୍ଣ‌ମ୍ ଶୁଭାଙ୍ଗମ୍ ॥\nଲକ୍ଷ୍ମୀକାନ୍ତଂ କମଲନୟନଂ\nୟୋଗିଭିର୍ ଧ୍ୟାନଗମ୍ୟମ୍ ।\nବନ୍ଦେ ବିଷ୍ଣୁଂ ଭବଭୟହରଂ\nସର୍ବ‌ଲୋକୈକନାଥମ୍ ॥"
     },
     hindi: {
-      title: "विष्णु श्लोक (शान्ताकारं)",
+      title: "शान्ताकारं भुजगशयनं",
       text: "शान्ताकारं भुजगशयनं\nपद्मनाभं सुरेशम् ।\nविश्वाधारं गगनसदृशं\nमेघवर्णम् शुभाङ्गम् ॥\nलक्ष्मीकान्तं कमलनयनं\nयोगिभिर्ध्यानगम्यम् ।\nवन्दे विष्णुं भवभयहरं\nसर्वलोकैकनाथम् ॥"
     },
     english: {
-      title: "Vishnu Shloka (Shantakaram)",
+      title: "Shantakaram Bhujagashayanam",
       text: "Shantakaram Bhujagashayanam\nPadmanabham Suresham |\nVishvadharam Gaganasadrusham\nMeghavarnam Shubhangam ||\nLakshmikantam Kamalanayanam\nYogibhir Dhyana Gamyam |\nVande Vishnum Bhavabhayaharam\nSarvalokaikanaatham ||"
     },
     meaning: {
-      odia: "ବ‍ ‌ ‌ ‌ ‌।",
-      hindi: "जो शेषनाग पर शयन करते हैं, जिनकी नाभि में कमल है — उन विष्णु को नमस्कार, जो भव-भय का नाश करते और सर्व-लोक के स्वामी हैं।",
-      english: "I bow to Vishnu — resting on the serpent, with lotus navel, beloved of Lakshmi, lotus-eyed — who removes the fear of existence and is the one lord of all worlds."
+      odia: "",
+      hindi: "शेषनाग पर शयन करने वाले, जिनकी नाभि में कमल है, लक्ष्मी के प्रिय — उन विष्णु को नमस्कार।",
+      english: "I bow to Vishnu — resting on the serpent, with lotus navel, beloved of Lakshmi, lotus-eyed — lord of all worlds, remover of the fear of existence."
     },
     benefits: "Divine protection, liberation, grace of Vishnu, mental peace."
   },
 
   {
-    id: "shiva-sloka",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Shiva",
-    deity: "Shiva",
-    tags: ["liberation", "peace", "monday"],
-    repetitions: "3 / 11",
-    timing: "Morning, Monday, Shivaratri",
-    odia: {
-      title: "ଶ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "କ‍ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "शिव श्लोक (कर्पूरगौरं)",
-      text: "कर्पूरगौरं करुणावतारं\nसंसारसारम् भुजगेन्द्रहारम् ।\nसदावसन्तं हृदयारविन्दे\nभवं भवानीसहितं नमामि ॥"
-    },
-    english: {
-      title: "Shiva Shloka (Karpuragauram)",
-      text: "Karpuragauram Karunavataaram\nSamsaarasaaram Bhujagendra Haaram |\nSadavasantam Hridayaaravinde\nBhavam Bhavaani Sahitam Namaami ||"
-    },
-    meaning: {
-      odia: "କ‍ ‌ ‌ ‌ ‌।",
-      hindi: "जो कपूर की तरह गौर हैं, करुणा के अवतार हैं, सर्पराज का हार पहने हैं — उन भवानी-सहित शिव को नमस्कार।",
-      english: "I bow to Shiva — white as camphor, the very incarnation of compassion, wearing the king of serpents as a garland — who dwells in the lotus of the heart, together with Bhavani."
-    },
-    benefits: "Peace, liberation, removes fears, divine grace of Shiva and Parvati."
-  },
-
-  {
-    id: "hanuman-sloka",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Hanuman",
-    deity: "Hanuman",
-    tags: ["strength", "protection", "tuesday"],
+    id: "sarva-mangala-mangalye",
+    deity: "Devi / Durga",
+    tags: ["devi", "protection", "auspicious", "evening"],
     repetitions: "3",
-    timing: "Morning, Tuesday, Saturday",
+    timing: "Morning, evening, any prayer",
+    status: "full",
     odia: {
-      title: "ହ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ମ‍ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ସର୍ବ ମଙ୍ଗଳ ମାଙ୍ଗଲ୍ୟେ",
+      text: "ସର୍ବ                                      "
     },
     hindi: {
-      title: "हनुमान श्लोक (मनोजवं)",
-      text: "मनोजवं मारुततुल्यवेगं\nजितेन्द्रियं बुद्धिमतां वरिष्ठम् ।\nवातात्मजं वानरयूथमुख्यं\nश्रीरामदूतं शरणं प्रपद्ये ॥"
-    },
-    english: {
-      title: "Hanuman Shloka (Manojavam)",
-      text: "Manojavam Marutatulya Vegam\nJitendriyam Buddhimatam Varishtam |\nVata Atmajam Vanarayutha Mukhyam\nSri Rama Dutam Sharanam Prapadye ||"
-    },
-    meaning: {
-      odia: "ମ‍ ‌ ‌ ‌ ‌।",
-      hindi: "मन की तरह तेज़ गति वाले, इंद्रियों पर विजय प्राप्त — श्रीराम के दूत की शरण लेता हूँ।",
-      english: "I seek the refuge of Hanuman — swift as the mind, master of the senses, son of Vayu, beloved messenger of Sri Rama."
-    },
-    benefits: "Strength, speed of mind, sense-control, wisdom, divine protection."
-  },
-
-  {
-    id: "devi-sloka",
-    section: "slokas",
-    category: "Daily Slokas",
-    subcategory: "Devi",
-    deity: "Durga / Shakti",
-    tags: ["shakti", "protection", "friday"],
-    repetitions: "3",
-    timing: "Morning, Friday, Navratri",
-    odia: {
-      title: "ଦ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ସ‍ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
-    hindi: {
-      title: "देवी श्लोक (सर्वमङ्गल)",
+      title: "सर्वमङ्गलमाङ्गल्ये",
       text: "सर्वमङ्गलमाङ्गल्ये\nशिवे सर्वार्थसाधिके ।\nशरण्ये त्र्यम्बके गौरि\nनारायणि नमोऽस्तु ते ॥"
     },
     english: {
-      title: "Devi Shloka (Sarva Mangala)",
+      title: "Sarva Mangala Mangalye",
       text: "Sarva Mangala Mangalye\nShive Sarvartha Sadhike |\nSharanye Tryambake Gauri\nNarayani Namo Stu Te ||"
     },
     meaning: {
-      odia: "ସ‍ ‌ ‌ ‌ ‌।",
-      hindi: "हे सर्व-मंगल की मंगलस्वरूपिणी, हे शिवे, हे शरणदात्री, तीन नेत्रों वाली गौरी, नारायणी — आपको नमस्कार।",
-      english: "O Narayani — the most auspicious of all that is auspicious, the giver of all blessings, the refuge of all, the three-eyed Gauri — salutations to thee."
+      odia: "",
+      hindi: "हे सर्व-मंगल की मंगलस्वरूपिणी, शरणदात्री, तीन-नेत्री गौरी, नारायणी — आपको नमस्कार।",
+      english: "O Narayani — the most auspicious, giver of all blessings, refuge of all, three-eyed Gauri — salutations to thee."
     },
-    benefits: "All-round auspiciousness, divine protection, fulfillment of wishes, grace of the goddess."
+    benefits: "All-round auspiciousness, divine protection, grace of the goddess.",
+    featured: true, morning: true, evening: true
   },
 
-  /* ═══════════════════ SADHANA / PUJA ═══════════════════ */
-
   {
-    id: "sandhya-savitri",
-    section: "sadhana",
-    category: "Sadhana / Puja",
-    subcategory: "Sandhya Prayers",
-    deity: "Surya / Savitri",
-    tags: ["morning", "evening", "sandhya", "daily"],
-    repetitions: "3 times (Sandhya)",
-    timing: "Sunrise, noon, sunset",
+    id: "brahmarpanam",
+    deity: "Brahman",
+    tags: ["food", "gratitude", "daily"],
+    repetitions: "1",
+    timing: "Before each meal",
+    status: "full",
     odia: {
-      title: "ସ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଆଚ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ବ୍ରହ୍ମାର୍ପଣ (ଭୋଜନ ଶ୍ଳୋକ)",
+      text: "ଓଁ ବ୍ରହ୍ମାର୍ପଣଂ ବ୍ରହ୍ମ ହବିଃ\nବ୍ରହ୍ମାଗ୍ନୌ ବ୍ରହ୍ମଣା ହୁତମ୍ ।\nବ୍ରହ୍ମୈବ ତେନ ଗନ୍ତବ୍ୟଂ\nବ୍ରହ୍ମ‌କର୍ମ ସମାଧିନା ॥"
     },
     hindi: {
-      title: "संध्या-वंदना क्रम",
-      text: "ॐ — आचमन, प्राणायाम और देश-काल स्मरण के बाद:\nॐ भूर्भुवः स्वः ।\nतत्सवितुर्वरेण्यम् ।\nभर्गो देवस्य धीमहि ।\nधियो यो नः प्रचोदयात् ॥"
+      title: "ब्रह्मार्पणम् (गीता 4.24)",
+      text: "ॐ ब्रह्मार्पणं ब्रह्म हविः\nब्रह्माग्नौ ब्रह्मणा हुतम् ।\nब्रह्मैव तेन गन्तव्यं\nब्रह्मकर्म समाधिना ॥"
     },
     english: {
-      title: "Sandhya Vandana Sequence",
-      text: "Om — Sip water (Achamana), perform Pranayama, recall place and time, then worship:\nOm Bhur Bhuvah Svah.\nTat Savitur Varenyam.\nBhargo Devasya Dhimahi.\nDhiyo Yo Nah Prachodayat."
+      title: "Brahmarpanam (Before Food — Gita 4.24)",
+      text: "Om Brahmarpanam Brahma Havih\nBrahm Agnau Brahmana Hutam |\nBrahmaiva Tena Gantavyam\nBrahma Karma Samadhina ||"
     },
     meaning: {
-      odia: "ସ‍ ‌ ‌ ‌ ‌।",
-      hindi: "आचमन, प्राणायाम और देश-काल स्मरण के बाद गायत्री के साथ त्रिकाल संध्या-उपासना।",
-      english: "After Achamana, Pranayama, and recollection of place and time — perform Sandhya worship with the Gayatri at the three junctures of day."
+      odia: "ଅର୍ପଣ ବ୍ରହ୍ମ, ହବି ବ୍ରହ୍ମ। ବ୍ରହ୍ମ‌ସମାଧିରେ ରହୁଥିବା ବ୍ୟକ୍ତି ବ୍ରହ୍ମ ପ୍ରାପ୍ତ କରନ୍ତି।",
+      hindi: "अर्पण भी ब्रह्म है, हवि भी ब्रह्म है। ऐसे ब्रह्म-समाधि वाले को ब्रह्म ही प्राप्त होता है।",
+      english: "The act of offering is Brahman, the oblation is Brahman. One who sees Brahman in all action attains Brahman."
     },
-    benefits: "Purification, connection to cosmic rhythms, mental clarity, spiritual merit."
+    benefits: "Transforms eating into a sacred act, mindfulness, gratitude."
   },
 
   {
-    id: "gayatri-sadhana",
-    section: "sadhana",
-    category: "Sadhana / Puja",
-    subcategory: "Gayatri Sadhana",
-    deity: "Surya / Brahman",
-    tags: ["sadhana", "daily", "morning"],
-    repetitions: "108 minimum",
-    timing: "Sunrise — daily sadhana",
+    id: "saraswati-namastubhyam",
+    deity: "Saraswati",
+    tags: ["study", "saraswati", "knowledge"],
+    repetitions: "3",
+    timing: "Before study or learning",
+    status: "full",
     odia: {
-      title: "ଗ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ଭୂର୍ଭୁବଃ ସ୍ୱଃ\nତତ୍ ସବିତୁର୍ ବରେଣ୍ୟଂ ।\nଭର୍ଗୋ ଦେବସ୍ୟ ଧୀମହି ।\nଧିୟୋ ୟୋ ନଃ ପ୍ରଚୋଦୟାତ୍ ॥\n\n[ସୂ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌]"
+      title: "ସରସ୍ୱତୀ ନମସ୍ତୁଭ୍ୟଂ",
+      text: "ସରସ୍ୱତୀ ନମସ୍ତୁଭ୍ୟଂ\nବରଦେ କାମ ରୂପିଣି ।\nବିଦ୍ୟାରମ୍ଭଂ କରିଷ୍ୟାମି\nସିଦ୍ଧିର୍ ଭବତୁ ମେ ସଦା ॥"
     },
     hindi: {
-      title: "गायत्री साधना क्रम",
-      text: "ॐ भूर्भुवः स्वः\nतत्सवितुर्वरेण्यम् ।\nभर्गो देवस्य धीमहि ।\nधियो यो नः प्रचोदयात् ॥\n\n[सूर्योदय में पूर्व मुख। आचमन। 108 बार जप। सूर्य को अर्घ्य।]"
+      title: "सरस्वती नमस्तुभ्यम्",
+      text: "सरस्वती नमस्तुभ्यं\nवरदे काम रूपिणि ।\nविद्यारम्भं करिष्यामि\nसिद्धिर्भवतु मे सदा ॥"
     },
     english: {
-      title: "Gayatri Sadhana Sequence",
-      text: "Om Bhur Bhuvah Svah\nTat Savitur Varenyam |\nBhargo Devasya Dhimahi\nDhiyo Yo Nah Prachodayat ||\n\n[Sit facing East at sunrise. Achamana. Chant 108 times with a mala. Offer Arghya to the Sun.]"
+      title: "Saraswati Namastubhyam",
+      text: "Saraswati Namastubhyam\nVarade Kama Rupini |\nVidyarambham Karishyami\nSiddhir Bhavatu Me Sada ||"
     },
     meaning: {
-      odia: "ଗ‍ ‌ ‌ ‌ ‌।",
-      hindi: "गायत्री साधना — प्रतिदिन सूर्योदय के समय गायत्री मंत्र का जप। मन, वाणी और शरीर की शुद्धि का श्रेष्ठ उपाय।",
-      english: "Gayatri Sadhana — daily chanting of the Gayatri Mantra at sunrise. The supreme purifying practice for mind, speech and body."
+      odia: "ହେ ସରସ୍ୱତୀ, ଆପଣଙ୍କୁ ନମସ୍କାର। ହେ ବରଦାୟିନୀ, ଆମି ବିଦ୍ୟାରମ୍ଭ କରୁଛି — ମୋ‌କୁ ସଦା ସିଦ୍ଧି ମିଳୁ।",
+      hindi: "हे सरस्वती, आपको नमस्कार। हे वरदायिनी, मैं विद्या आरंभ करता हूँ, मुझे सदा सिद्धि प्राप्त हो।",
+      english: "Salutations to Saraswati, the granter of boons. I begin my study — may I always attain success."
     },
-    benefits: "Highest purification, awakens intellect, removes karma, grants liberation.",
-    morning: true
+    benefits: "Auspicious beginning of study, Saraswati's blessing for knowledge."
   },
 
   {
-    id: "hanuman-sadhana",
-    section: "sadhana",
-    category: "Sadhana / Puja",
-    subcategory: "Hanuman Sadhana",
+    id: "ya-kundendu",
+    deity: "Saraswati",
+    tags: ["saraswati", "study", "knowledge"],
+    repetitions: "3",
+    timing: "Morning, before study",
+    status: "full",
+    odia: {
+      title: "ୟା କୁନ୍ଦେନ୍ଦୁ",
+      text: "ୟା କୁନ୍ଦେନ୍ଦୁ ତୁଷାର‌ହାର ଧବଲା\nୟା ଶୁଭ୍ର‌ବସ୍ତ୍ରାବୃତା ।\nୟା ବୀଣାବରଦଣ୍ଡ‌ମଣ୍ଡ‌ତ‌କରା\nୟା ଶ୍ୱେତ‌ପଦ୍ମାସନା ॥\nୟା ବ୍ରହ୍ମାଚ୍ୟୁତ‌ଶଙ୍କର‌ପ୍ରଭୃତ‌ଭିର୍\nଦେବୈଃ ସଦା ବନ୍ଦିତା ।\nସା ମାଂ ପାତୁ ସରସ୍ୱତୀ ଭଗବତୀ\nନିଃଶେଷ‌ଜାଡ୍ୟା‌ପ‌ହା ॥"
+    },
+    hindi: {
+      title: "या कुन्देन्दु",
+      text: "या कुन्देन्दु तुषारहार धवला\nया शुभ्रवस्त्रावृता ।\nया वीणावरदण्डमण्डितकरा\nया श्वेतपद्मासना ॥\nया ब्रह्माच्युतशङ्करप्रभृतिभिर्\nदेवैः सदा वन्दिता ।\nसा मां पातु सरस्वती भगवती\nनिःशेषजाड्यापहा ॥"
+    },
+    english: {
+      title: "Ya Kundendu Tusharahara",
+      text: "Ya Kundhendu Tushara Hara Dhavala\nYa Shubhra Vastravrta |\nYa Vina Vara Danda Manditakara\nYa Shveta Padmasana ||\nYa Brahma Achyuta Shankara Prabhrtibhir\nDevai Sada Vandita |\nSa Mam Patu Saraswati Bhagavati\nNishesha Jadyapaha ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "कुंद-पुष्प जैसी श्वेत, वीणा-धारिणी, श्वेत-कमल पर विराजमान — वह समस्त जड़ता हरने वाली सरस्वती मेरी रक्षा करें।",
+      english: "White as kunda flower and moon, adorned with the veena, seated on a white lotus — may that Saraswati, destroyer of all dullness, protect me."
+    },
+    benefits: "Bestows knowledge, clear speech, removes ignorance."
+  },
+
+  {
+    id: "gurur-brahma",
+    deity: "Guru / Dakshinamurti",
+    tags: ["guru", "teacher", "knowledge"],
+    repetitions: "3",
+    timing: "Before beginning any learning, in Guru's presence",
+    status: "full",
+    odia: {
+      title: "ଗୁରୁ ବ୍ରହ୍ମ",
+      text: "ଗୁରୁର୍ ବ୍ରହ୍ମା ଗୁରୁର୍ ବିଷ୍ଣୁଃ\nଗୁରୁର୍ ଦେବୋ ମ‌ହେଶ୍ୱରଃ ।\nଗୁରୁଃ ସାକ୍ଷାତ୍ ପ‌ର‌ବ୍ରହ୍ମ\nତସ୍ମୈ ଶ୍ରୀ ଗୁରବେ ନ‌ମଃ ॥"
+    },
+    hindi: {
+      title: "गुरुर्ब्रह्मा",
+      text: "गुरुर्ब्रह्मा गुरुर्विष्णुः\nगुरुर्देवो महेश्वरः ।\nगुरुः साक्षात् परब्रह्म\nतस्मै श्री गुरवे नमः ॥"
+    },
+    english: {
+      title: "Gurur Brahma",
+      text: "Gurur Brahma Gurur Vishnu\nGurur Devo Maheshvarah |\nGuruh Sakshat Parabrahma\nTasmai Shri Gurave Namah ||"
+    },
+    meaning: {
+      odia: "ଗୁରୁ ହିଁ ବ୍ରହ୍ମା, ବିଷ୍ଣୁ ଓ ମ‌ହେଶ୍ୱର। ଗୁରୁ ସାକ୍ଷାତ୍ ପ‌ର‌ବ୍ରହ୍ମ। ସେ ଶ୍ରୀ ଗୁରୁ‌ଙ୍କୁ ନ‌ମ‌ସ୍କାର।",
+      hindi: "गुरु ही ब्रह्मा, विष्णु और महेश्वर हैं। गुरु साक्षात् परब्रह्म हैं। उन श्री गुरु को नमस्कार।",
+      english: "The Guru is Brahma, Vishnu, Maheshvara. The Guru is the very Supreme Brahman. Salutations to that Sri Guru."
+    },
+    benefits: "Reverence for the teacher, opening of wisdom, spiritual grace."
+  },
+
+  {
+    id: "manojavam",
     deity: "Hanuman",
-    tags: ["sadhana", "tuesday", "saturday"],
-    repetitions: "108 / 1008",
-    timing: "Tuesday and Saturday, sunrise",
+    tags: ["hanuman", "strength", "protection"],
+    repetitions: "3",
+    timing: "Morning, Tuesday, Saturday",
+    status: "full",
     odia: {
-      title: "ହ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ନ‍ ‌ ‌ ‌ ‌ ‌\nର‍ ‌ ‌ ‌ ‌ ‌ ‌"
-    },
+      title: "ମନୋଜବଂ ମାରୁତ ତୁଲ୍ୟ ବେଗଂ",
+      text: "ମ‌ନୋ‌ଜ‌ବଂ ମାରୁ‌ତ‌ତୁ‌ଲ‌ୟ ବେ‌ଗଂ\nଜି‌ତେ‌ନ‌ଦ‌ରି‌ୟଂ ବୁ‌ଦ‌ଧି‌ମ‌ତାଂ ବ‌ରି‌ଷ‌ଠ‌ମ ।\nବା‌ତା‌ତ‌ମ‌ଜଂ ବା‌ନ‌ର‌ୟୂ‌ଥ‌ମୁ‌ଖ‌ୟଂ\nଶ୍ରୀ"    },
     hindi: {
-      title: "हनुमान साधना मंत्र",
-      text: "ॐ नमो हनुमते रुद्रावताराय\nसर्वशत्रुसंहारणाय\nसर्वरोगहराय\nसर्ववशीकरणाय\nरामदूताय स्वाहा ॥"
+      title: "मनोजवं मारुततुल्यवेगम्",
+      text: "मनोजवं मारुततुल्यवेगं\nजितेन्द्रियं बुद्धिमतां वरिष्ठम् ।\nवातात्मजं वानरयूथमुख्यं\nश्रीरामदूतं शरणं प्रपद्ये ॥"
     },
     english: {
-      title: "Hanuman Sadhana Mantra",
-      text: "Om Namo Hanumate Rudravataraaya\nSarva Shatru Samhaaranaaya\nSarva Roga Haraaya\nSarva Vashikaranaaya\nRama Dootaya Svaha ||"
+      title: "Manojavam Marutatulyavegam",
+      text: "Manojavam Marutatulya Vegam\nJitendriyam Buddhimatam Varishtam |\nVata Atmajam Vanarayutha Mukhyam\nSri Rama Dutam Sharanam Prapadye ||"
     },
     meaning: {
-      odia: "ର‍ ‌ ‌ ‌ ‌।",
-      hindi: "रुद्र के अवतार हनुमान को नमस्कार — सभी शत्रुओं का संहार, सभी रोगों को दूर करते हैं।",
-      english: "Salutations to Hanuman, the avatar of Rudra — who destroys all enemies, removes all diseases — the messenger of Rama. Svaha."
+      odia: "",
+      hindi: "मन की तरह तेज, पवन-पुत्र, इंद्रिय-विजेता, बुद्धिमानों में श्रेष्ठ, श्रीराम के दूत — उनकी शरण लेता हूँ।",
+      english: "Swift as the mind, son of the Wind, master of the senses, wisest among the wise — I take refuge in the messenger of Sri Rama."
     },
-    benefits: "Destroys enemies, heals all diseases, grants strength, removes obstacles."
+    benefits: "Strength, swiftness of mind, sense-control, divine protection."
   },
 
-  /* ═══════════════════ SPECIAL PRAYERS ═══════════════════ */
-
   {
-    id: "protection-kavach",
-    section: "special",
-    category: "Special Prayers",
-    subcategory: "Protection",
+    id: "sarve-bhavantu-sukhinah",
     deity: "Universal",
-    tags: ["protection", "daily", "morning"],
-    repetitions: "3 / 7",
-    timing: "Morning, when in danger or fear",
+    tags: ["peace", "universal", "shanti"],
+    repetitions: "3",
+    timing: "Morning, evening, after meditation",
+    status: "full",
     odia: {
-      title: "ସ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ସ‍ ‌ ‌ ‌ ‌ ‌ ‌\nସ‍ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ସର୍ବେ ଭବନ୍ତୁ ସୁଖିନଃ",
+      text: "ଓଁ ସ                                "
     },
     hindi: {
-      title: "सर्वरक्षा प्रार्थना",
+      title: "सर्वे भवन्तु सुखिनः",
       text: "ॐ सर्वे भवन्तु सुखिनः\nसर्वे सन्तु निरामयाः ।\nसर्वे भद्राणि पश्यन्तु\nमा कश्चिद् दुःखभाग् भवेत् ॥"
     },
     english: {
-      title: "Universal Protection Prayer",
+      title: "Sarve Bhavantu Sukhinah",
       text: "Om Sarve Bhavantu Sukhinah\nSarve Santu Niramayah |\nSarve Bhadrani Pashyantu\nMa Kashchid Duhkha Bhag Bhavet ||"
     },
     meaning: {
-      odia: "ସ‍ ‌ ‌ ‌ ‌।",
+      odia: "",
       hindi: "सभी सुखी हों, सभी निरोगी हों, सभी कल्याण देखें, कोई दुःख का भागी न हो।",
-      english: "May all beings be happy; may all beings be healthy; may all beings see auspiciousness; may no one suffer."
+      english: "May all beings be happy; may all be healthy; may all see auspiciousness; may no one suffer."
     },
-    benefits: "Universal peace, protection for self and others, compassion, positive energy.",
-    featured: true,
-    morning: true,
-    evening: true
+    benefits: "Universal peace, compassion, positive energy.",
+    featured: true, morning: true, evening: true
   },
 
   {
-    id: "peace-shanti-mantra",
-    section: "special",
-    category: "Special Prayers",
-    subcategory: "Peace",
+    id: "om-shanti-shanti",
     deity: "Universal",
-    tags: ["peace", "universal", "evening"],
+    tags: ["peace", "shanti", "evening"],
     repetitions: "3",
-    timing: "Morning, evening, after meditation",
+    timing: "Morning, evening, after prayer",
+    status: "full",
     odia: {
-      title: "ଶ‍ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ଦ‍ ‌ ‌ ‌ ‌ ‌ ‌ ‌\nଓଁ ଶ‍ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ଓଁ ଶାନ୍ତି ଶାନ୍ତି ଶାନ୍ତି",
+      text: "ଓଁ ଶ                                "
     },
     hindi: {
-      title: "शान्ति मंत्र (सर्व शान्तिः)",
+      title: "ॐ शान्तिः शान्तिः शान्तिः",
       text: "ॐ द्यौः शान्तिरन्तरिक्षं शान्तिः\nपृथिवी शान्तिरापः शान्तिः ।\nओषधयः शान्तिर्वनस्पतयः शान्तिः\nविश्वेदेवाः शान्तिर्ब्रह्म शान्तिः ।\nसर्वं शान्तिः शान्तिरेव शान्तिः\nसा मा शान्तिरेधि ।\nॐ शान्तिः शान्तिः शान्तिः ॥"
     },
     english: {
-      title: "Universal Peace Mantra (Shanti Path)",
-      text: "Om — peace in the heavens, peace in the sky, peace on earth, peace in the waters, peace in the plants, peace in the trees. May all gods bring peace, may Brahman bring peace. May all peace, peace alone, be that peace. May that peace come to me.\nOm Shanti Shanti Shanti."
+      title: "Om Shanti Shanti Shanti",
+      text: "Om — peace in the heavens, peace in the sky, peace on earth, peace in the waters, peace in the plants.\nMay all gods bring peace, may Brahman bring peace.\nMay that peace come to me.\nOm Shanti Shanti Shanti."
     },
     meaning: {
-      odia: "ସ‍ ‌ ‌ ‌ ‌।",
-      hindi: "संपूर्ण सृष्टि में सब ओर शांति हो। सभी देव और ब्रह्म शांति लाएं। वह शांति मुझमें प्रकट हो।",
-      english: "Peace in the entire creation — sky, atmosphere, earth, water, plants. May universal peace manifest within me."
+      odia: "",
+      hindi: "संपूर्ण सृष्टि में सब ओर शांति हो। वह शांति मुझमें प्रकट हो।",
+      english: "Peace throughout all creation — sky, earth, water, plants. May that universal peace manifest within me."
     },
-    benefits: "Inner peace, environmental harmony, calm of mind, cessation of disturbances.",
+    benefits: "Inner peace, harmony, end of all disturbances.",
     evening: true
   },
 
   {
-    id: "health-dhanvantari",
-    section: "special",
-    category: "Special Prayers",
-    subcategory: "Health",
-    deity: "Dhanvantari",
-    tags: ["healing", "health", "daily"],
-    repetitions: "21 / 108",
-    timing: "Morning, especially when ill or for prevention",
+    id: "om-saha-navavatu",
+    deity: "Universal / Guru",
+    tags: ["peace", "study", "universal"],
+    repetitions: "3",
+    timing: "Before study, before meal, after prayer",
+    status: "full",
     odia: {
-      title: "ଧ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ନ‍ ‌ ‌ ‌ ‌ ‌\nଧ‍ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ଓଁ ସହ ନାବବତୁ",
+      text: "ଓଁ ସ                                "
     },
     hindi: {
-      title: "धन्वन्तरि मंत्र (स्वास्थ्य)",
-      text: "ॐ नमो भगवते वासुदेवाय\nधन्वन्तरये अमृत-कलश-हस्ताय\nसर्वामय-विनाशाय\nत्रैलोक्य-नाथाय\nश्री महाविष्णवे नमः ॥"
+      title: "ॐ सह नाव्वतु",
+      text: "ॐ सह नाव्वतु\nसह नौ भुनक्तु ।\nसह वीर्यं करवावहै ।\nतेजस्वि नाव् अधीतमस्तु\nमा विद्विषावहै ।\nॐ शान्तिः शान्तिः शान्तिः ॥"
     },
     english: {
-      title: "Dhanvantari Mantra (Health)",
-      text: "Om Namo Bhagavate Vasudevaya\nDhanvantaraye Amrita Kalasha Hastaya\nSarva Amaya Vinashaya\nTrailokya Naathaya\nSri Maha Vishnave Namah ||"
+      title: "Om Saha Navavatu",
+      text: "Om Saha Navavatu\nSaha Nau Bhunaktu |\nSaha Viryam Karavavahai\nTejasvi Nav Adhitam Astu\nMa Vidvisavahai |\nOm Shanti Shanti Shanti ||"
     },
     meaning: {
-      odia: "ଅ‍ ‌ ‌ ‌ ‌।",
-      hindi: "अमृत-कलश हाथ में धारण करने वाले, सभी रोगों का नाश करने वाले धन्वन्तरि को नमस्कार।",
-      english: "Salutations to Lord Dhanvantari — the divine physician, holding the pot of nectar, destroyer of all diseases, lord of the three worlds."
+      odia: "",
+      hindi: "हम दोनों (गुरु-शिष्य) साथ सुरक्षित हों, साथ भोजन करें, साथ वीर्य अर्जित करें। हमारा अध्ययन तेजस्वी हो। हम परस्पर द्वेष न करें।",
+      english: "May we both (teacher and student) be protected together, nourished together. May we work together with great energy. May our study be luminous. May we never hate each other."
     },
-    benefits: "Heals illness, grants health and longevity, removes diseases.",
+    benefits: "Harmony between teacher and student, fruitful learning."
+  },
+
+  {
+    id: "deepa-jyoti-parabrahma",
+    deity: "Universal / Agni",
+    tags: ["evening", "lamp", "prayer"],
+    repetitions: "1",
+    timing: "Evening lamp-lighting (Sandhya Deepa)",
+    status: "full",
+    odia: {
+      title: "ଦୀପ ଜ୍ୟୋତି ପରବ୍ରହ୍ମ",
+      text: "ଦ                                "
+    },
+    hindi: {
+      title: "दीप ज्योति परब्रह्म",
+      text: "दीपज्योति परब्रह्म\nदीपज्योतिर्जनार्दनः ।\nदीपो हरतु मे पापं\nदीपज्योतिर्नमोऽस्तु ते ॥"
+    },
+    english: {
+      title: "Deepa Jyoti Parabrahma",
+      text: "Deepajyoti Parabrahma\nDeepajyotir Janardanah |\nDeepam Harastu Me Papam\nDeepajyotir Namo Stu Te ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "दीपज्योति ही परब्रह्म है, दीपज्योति ही जनार्दन है। दीप मेरे पाप हरे। दीपज्योति को नमस्कार।",
+      english: "The lamp's light is Para-Brahman, it is Janardana. May the lamp remove my sins. Salutations to the lamp's divine light."
+    },
+    benefits: "Purification, dispels darkness and ignorance, evening sanctity.",
+    evening: true
+  },
+
+  {
+    id: "asato-ma-sadgamaya",
+    deity: "Universal / Brahman",
+    tags: ["peace", "universal", "shanti"],
+    repetitions: "3",
+    timing: "Morning, evening, after meditation",
+    status: "full",
+    odia: {
+      title: "ଅସତୋ ମା ସଦ୍ ଗମୟ",
+      text: "ଓଁ ଅ                               "
+    },
+    hindi: {
+      title: "असतो मा सद्गमय",
+      text: "ॐ असतो मा सद्गमय ।\nतमसो मा ज्योतिर्गमय ।\nमृत्योर्मा अमृतं गमय ।\nॐ शान्तिः शान्तिः शान्तिः ॥"
+    },
+    english: {
+      title: "Asato Ma Sadgamaya",
+      text: "Om Asato Ma Sadgamaya |\nTamaso Ma Jyotirgamaya |\nMrityor Ma Amritam Gamaya |\nOm Shanti Shanti Shanti ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "असत्य से सत्य की ओर, अंधकार से प्रकाश की ओर, मृत्यु से अमरता की ओर ले जाओ।",
+      english: "Lead me from the unreal to the Real, from darkness to Light, from death to Immortality. Om Peace Peace Peace."
+    },
+    benefits: "Spiritual clarity, removal of illusion, guidance toward truth and liberation."
+  },
+
+  {
+    id: "karacharana-kritam",
+    deity: "Universal",
+    tags: ["sleep", "evening", "forgiveness"],
+    repetitions: "1",
+    timing: "Before sleep",
+    status: "full",
+    odia: {
+      title: "କର ଚରଣ କ୍ଷମା ଶ୍ଳୋକ",
+      text: "କ                                "
+    },
+    hindi: {
+      title: "करचरण कृतं पापम्",
+      text: "करचरणकृतं वाक् कायजं कर्मजं वा\nश्रवणनयनजं वा मानसं वापराधम् ।\nविहितमविहितं वा सर्वमेतत् क्षमस्व\nजय जय करुणाब्धे श्री महादेव शम्भो ॥"
+    },
+    english: {
+      title: "Karacharana Kritam (Bedtime Forgiveness Prayer)",
+      text: "Karacharanakritam Vak Kayajam Karmajam Va\nShravananayanajam Va Manasam Vapa Radham |\nVihitamavihitam Va Sarvametat Kshamasva\nJaya Jaya Karunaabdhe Shri Mahadeva Shambho ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "हाथ, पैर, वाणी, शरीर, कर्म, श्रवण, नेत्र, मन — जो भी जाने-अनजाने पाप हुए, सब क्षमा करें। हे करुणा-सागर महादेव शम्भो, जय जय।",
+      english: "Whatever sins I have committed through hands, feet, speech, body, actions, hearing, eyes, or mind — knowingly or unknowingly — forgive them all. Hail, O ocean of compassion, Mahadeva Shambho!"
+    },
+    benefits: "Forgiveness of daily transgressions, clean conscience, peaceful sleep.",
+    evening: true
+  },
+
+  {
+    id: "hare-krishna-mahamantra",
+    deity: "Krishna / Vishnu",
+    tags: ["krishna", "bhakti", "liberation"],
+    repetitions: "108 / 1008",
+    timing: "Any time, especially morning and evening",
+    status: "full",
+    odia: {
+      title: "ହରେ କୃଷ୍ଣ ମହାମନ୍ତ୍ର",
+      text: "ହରେ କୃଷ୍ଣ ହରେ କୃଷ୍ଣ\nକୃଷ୍ଣ କୃଷ୍ଣ ହରେ ହରେ ।\nହରେ ରାମ ହରେ ରାମ\nରାମ ରାମ ହରେ ହରେ ॥"
+    },
+    hindi: {
+      title: "हरे कृष्ण महामन्त्र",
+      text: "हरे कृष्ण हरे कृष्ण\nकृष्ण कृष्ण हरे हरे ।\nहरे राम हरे राम\nराम राम हरे हरे ॥"
+    },
+    english: {
+      title: "Hare Krishna Mahamantra",
+      text: "Hare Krishna Hare Krishna\nKrishna Krishna Hare Hare |\nHare Rama Hare Rama\nRama Rama Hare Hare ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "हरे (भगवान की शक्ति), कृष्ण (सर्वाकर्षक), राम (आनंदस्वरूप) — इनके नामों का जप मुक्ति का मार्ग है।",
+      english: "Hare (the divine energy), Krishna (the all-attractive), Rama (the reservoir of joy) — chanting these names is the path to liberation in this age."
+    },
+    benefits: "Liberation, joy, purification of heart, union with the divine.",
+    morning: true, evening: true
+  },
+
+  {
+    id: "rama-rameti",
+    deity: "Rama",
+    tags: ["rama", "liberation", "nama"],
+    repetitions: "3 / 108",
+    timing: "Any time — especially powerful",
+    status: "full",
+    odia: {
+      title: "ରାମ ରାମେତି",
+      text: "ର                                "
+    },
+    hindi: {
+      title: "राम रामेति",
+      text: "राम रामेति रामेति\nरमे रामे मनोरमे ।\nसहस्रनाम तत्तुल्यं\nरामनाम वरानने ॥"
+    },
+    english: {
+      title: "Rama Rameti",
+      text: "Rama Rameti Rameti\nRame Rame Manorame |\nSahasranama Tattulyam\nRamanama Varanane ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "'राम राम राम' — मनोरम राम में मेरा मन रमता है। यह एक नाम सहस्र नामों के तुल्य है।",
+      english: "Chanting 'Rama Rama Rama', my mind delights in Rama the beautiful. This one name equals the Vishnu Sahasranama."
+    },
+    benefits: "Equal in merit to Vishnu Sahasranama, purification, liberation.",
     morning: true
   },
 
   {
-    id: "knowledge-hayagriva",
-    section: "special",
-    category: "Special Prayers",
-    subcategory: "Knowledge",
-    deity: "Saraswati / Brahman",
-    tags: ["knowledge", "study", "wisdom"],
-    repetitions: "21",
-    timing: "Morning, before study or exams",
+    id: "lokah-samastah",
+    deity: "Universal",
+    tags: ["peace", "universal", "shanti", "yoga"],
+    repetitions: "3",
+    timing: "End of yoga/meditation/prayer",
+    status: "full",
     odia: {
-      title: "ବ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ବ‍ ‌ ‌ ‌ ‌ ‌\nମ‍ ‌ ‌ ‌ ‌ ‌"
+      title: "ଲୋକାଃ ସମସ୍ତାଃ",
+      text: "ଲୋକାଃ ସମସ୍ତାଃ ସୁଖିନୋ ଭବନ୍ତୁ ।\nଓଁ ଶାନ୍ତଃ ଶାନ୍ତଃ ଶାନ୍ତଃ ॥"
     },
     hindi: {
-      title: "विद्या प्राप्ति मंत्र",
-      text: "ॐ वाक्यं मे मनसि प्रतिष्ठापय\nमनो मे वाचि प्रतिष्ठापय ।\nआविराविर् म एधि\nवेदस्य म आणीस्थः\nश्रुतं मे मा प्रहासीः ॥"
+      title: "लोकाः समस्ताः सुखिनो भवन्तु",
+      text: "लोकाः समस्ताः सुखिनो भवन्तु ।\nॐ शान्तिः शान्तिः शान्तिः ॥"
     },
     english: {
-      title: "Knowledge Attainment Mantra",
-      text: "Om — Establish my speech in my mind, establish my mind in my speech. May knowledge be manifest in me. May the study of the Vedas be my foundation. May what I have heard never leave me."
+      title: "Lokah Samastah Sukhino Bhavantu",
+      text: "Lokah Samastah Sukhino Bhavantu |\nOm Shanti Shanti Shanti ||"
     },
     meaning: {
-      odia: "ମ‍ ‌ ‌ ‌ ‌।",
-      hindi: "मेरी वाणी और मन में समन्वय हो। ज्ञान मुझमें प्रकट हो।",
-      english: "May speech and mind be aligned in me. May knowledge manifest within me. May nothing I have learned ever be lost."
+      odia: "ସମସ୍ତ ଲୋକ ସୁଖୀ ହୁଅନ୍ତୁ। ଓଁ ଶାନ୍ତି।",
+      hindi: "सभी लोक/प्राणी सुखी हों। ॐ शान्ति।",
+      english: "May all the worlds and beings be happy. Om Peace Peace Peace."
     },
-    benefits: "Retention of knowledge, clarity of speech, union of mind and word, academic success."
+    benefits: "Universal goodwill, compassion, peaceful closure of any practice."
+  },
+
+  /* ── New full entries ── */
+
+  {
+    id: "brahma-murari",
+    deity: "Brahma / Vishnu / Shiva",
+    tags: ["morning", "daily", "universal"],
+    repetitions: "1",
+    timing: "Morning, upon waking",
+    status: "full",
+    odia: {
+      title: "ବ୍ରହ୍ମ ମୁରାରି ତ୍ରିପୁରାନ୍ତକାରି",
+      text: "ବ୍ରହ୍ମ ମୁରାରି ତ୍ରିପୁରାନ୍ତକାରି\nଭାନୁଃ ଶଶୀ ଭୂମି      "
+    },
+    hindi: {
+      title: "ब्रह्म मुरारि त्रिपुरान्तकारि",
+      text: "ब्रह्म मुरारि त्रिपुरान्तकारि\nभानुः शशी भूमिसुतो बुधश्च ।\nगुरुश्च शुक्रः शनिराहु-केतवः\nकुर्वन्तु सर्वे मम सुप्रभातम् ॥"
+    },
+    english: {
+      title: "Brahma Murari Tripurantakari",
+      text: "Brahma Murari Tripurantakari\nBhanuh Shashi Bhumisuto Budhashcha |\nGurushcha Shukrah Shani Rahu-Ketavah\nKurvantu Sarve Mama Suprabhatam ||"
+    },
+    meaning: {
+      odia: "ବ୍ରହ୍ମା, ଵିଷ୍ଣୁ, ଶିବ, ସୂର୍ୟ, ଚନ୍ଦ୍ର ଓ ନଵ ଗ୍ରହ — ସଭେ ମୋ ପ୍ରଭାତ ଶୁଭ              ",
+      hindi: "ब्रह्मा, विष्णु, शिव, सूर्य, चंद्र और नवग्रह — ये सभी मेरे प्रभात को शुभ बनाएं।",
+      english: "May Brahma, Vishnu, Shiva, Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu all bless my morning."
+    },
+    benefits: "Auspicious morning, blessings of all deities and planets.",
+    morning: true
   },
 
   {
-    id: "prosperity-lakshmi",
-    section: "special",
-    category: "Special Prayers",
-    subcategory: "Prosperity",
-    deity: "Lakshmi",
-    tags: ["prosperity", "wealth", "friday"],
-    repetitions: "108",
-    timing: "Friday morning, Diwali, monthly Purnima",
+    id: "vasudeva-sutam-devam",
+    deity: "Krishna",
+    tags: ["krishna", "morning", "liberation"],
+    repetitions: "3",
+    timing: "Morning or before prayer",
+    status: "full",
     odia: {
-      title: "ମ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ଶ୍ରୀଂ ହ୍ରୀଂ ଶ୍ରୀଂ\nକ‍ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "ବାସୁଦେବ ସୁତଂ ଦେବଂ",
+      text: "ବାସୁଦେବ         "
     },
     hindi: {
-      title: "महालक्ष्मी मंत्र",
-      text: "ॐ श्रीं ह्रीं श्रीं\nकमले कमलालये प्रसीद प्रसीद\nश्रीं ह्रीं श्रीं\nॐ महालक्ष्म्यै नमः ॥"
+      title: "वासुदेव सुतं देवम्",
+      text: "वासुदेवसुतं देवं\nकंसचाणूरमर्दनम् ।\nदेवकी परमानन्दं\nकृष्णं वन्दे जगद्गुरुम् ॥"
     },
     english: {
-      title: "Mahalakshmi Mantra (Prosperity)",
-      text: "Om Shrim Hrim Shrim\nKamale Kamalaalaye Prasida Prasida\nShrim Hrim Shrim\nOm Mahalakshmyai Namah ||"
+      title: "Vasudeva Sutam Devam",
+      text: "Vasudeva Sutam Devam\nKamsa Chanura Mardanam |\nDevaki Paramananda\nKrishnam Vande Jagadgurum ||"
     },
     meaning: {
-      odia: "ହ‍ ‌ ‌ ‌ ‌।",
-      hindi: "हे कमल-निवासिनी महालक्ष्मी, प्रसन्न हों। आपको नमस्कार।",
-      english: "O Mahalakshmi who resides in the lotus — be pleased, be pleased. Salutations to the great goddess of prosperity."
+      odia: "",
+      hindi: "वासुदेव के पुत्र, कंस-चाणूर के संहारक, देवकी के परमानंद — उस जगद्गुरु कृष्ण को वंदन।",
+      english: "I salute Krishna, son of Vasudeva, slayer of Kamsa and Chanura, supreme joy of Devaki — the Guru of the universe."
     },
-    benefits: "Prosperity, wealth, abundance, happiness, removal of poverty and debt.",
-    featured: true
+    benefits: "Krishna's blessing, auspicious beginning, liberation."
   },
 
   {
-    id: "obstacle-removal",
-    section: "special",
-    category: "Special Prayers",
-    subcategory: "Removing Obstacles",
-    deity: "Ganesha",
-    tags: ["obstacles", "success", "new-beginning"],
-    repetitions: "21 / 108",
-    timing: "Before any new endeavour, Wednesday",
+    id: "karpura-gauram",
+    deity: "Shiva",
+    tags: ["shiva", "evening", "aarti"],
+    repetitions: "1",
+    timing: "Evening, during Shiva aarti",
+    status: "full",
     odia: {
-      title: "ବ‍ ‌ ‌ ‌ ‌ ‌ ‌",
-      text: "ଓଁ ଗଂ ଗ‍ ‌ ‌ ‌ ‌\nନ‍ ‌ ‌ ‌ ‌ ‌ ‌"
+      title: "କର୍ପୂର ଗୌରଂ",
+      text: ""
     },
     hindi: {
-      title: "विघ्न निवारण मंत्र",
-      text: "ॐ गं गणपतये\nनमो नमः ।\nश्री सिद्धिविनायक\nनमो नमः ।\nअष्टविनायक\nनमो नमः ।\nगणपति बाप्पा मोरया ॥"
+      title: "कर्पूरगौरं करुणावतारं",
+      text: "कर्पूरगौरं करुणावतारं\nसंसारसारं भुजगेन्द्रहारम् ।\nसदावसन्तं हृदयारविन्दे\nभवं भवानीसहितं नमामि ॥"
     },
     english: {
-      title: "Obstacle Removal Mantra (Ganesha)",
-      text: "Om Gam Ganapataye\nNamo Namah |\nShri Siddhi Vinayaka\nNamo Namah |\nAshta Vinayaka\nNamo Namah |\nGanapati Bappa Moraya ||"
+      title: "Karpura Gauram Karunavataram",
+      text: "Karpura Gauram Karunavataram\nSamsara Saram Bhujagendra Haram |\nSada Vasantam Hridaya Aravinde\nBhavam Bhavani Sahitam Namami ||"
     },
     meaning: {
-      odia: "ଗ‍ ‌ ‌ ‌ ‌।",
-      hindi: "गणपति को नमस्कार। सिद्धि देने वाले विनायक को नमस्कार।",
-      english: "Salutations to Ganapati. Salutations to Siddhi Vinayaka. Salutations to the Ashta Vinayaka. Victory to Lord Ganesha!"
+      odia: "",
+      hindi: "कपूर जैसे श्वेत, करुणा के अवतार, सर्पों की माला वाले, संसार-सार — भवानी सहित शिव को नमस्कार।",
+      english: "White as camphor, the avatar of compassion, essence of the world, with serpent garland — I bow to Shiva and Bhavani."
     },
-    benefits: "Removes all obstacles, grants success and accomplishment in every endeavour."
-  }
+    benefits: "Evening blessings, Shiva's grace, purification.",
+    evening: true
+  },
+
+  {
+    id: "shubham-karoti",
+    deity: "Universal / Agni",
+    tags: ["evening", "lamp", "daily"],
+    repetitions: "1",
+    timing: "Evening lamp-lighting",
+    status: "full",
+    odia: {
+      title: "ଶୁଭଂ କରୋତି କଲ୍ୟାଣଂ",
+      text: ""
+    },
+    hindi: {
+      title: "शुभं करोति कल्याणम्",
+      text: "शुभं करोति कल्याणम्\nआरोग्यं धनसम्पदाम् ।\nशत्रुबुद्धिविनाशाय\nदीपज्योतिर्नमोऽस्तु ते ॥"
+    },
+    english: {
+      title: "Shubham Karoti Kalyanam",
+      text: "Shubham Karoti Kalyanam\nArogyam Dhana Sampadam |\nShatru Buddhi Vinashaya\nDeepajyotir Namo Stu Te ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "जो शुभ करे, कल्याण दे, आरोग्य और धन-संपदा दे, शत्रु-बुद्धि का नाश करे — उस दीपज्योति को नमस्कार।",
+      english: "O lamp, you bring auspiciousness, good health, wealth, and destroy enemy thinking — salutations to your light."
+    },
+    benefits: "Evening blessings, prosperity, health, protection.",
+    evening: true
+  },
+
+  {
+    id: "apadam-apahartaram",
+    deity: "Rama",
+    tags: ["rama", "protection", "evening"],
+    repetitions: "3",
+    timing: "Morning, evening, in distress",
+    status: "full",
+    odia: {
+      title: "ଆପଦାମ ଅପ‌ହର୍ତାରଂ",
+      text: ""
+    },
+    hindi: {
+      title: "आपदामपहर्तारम्",
+      text: "आपदामपहर्तारं दातारं सर्वसम्पदाम् ।\nलोकाभिरामं श्रीरामं भूयो भूयो नमाम्यहम् ॥"
+    },
+    english: {
+      title: "Apadam Apahartaram",
+      text: "Apadam Apahartaram Dataram Sarva Sampadam |\nLokaabhiramam Sri Ramam Bhuyo Bhuyo Namamyaham ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "विपदाओं को हरने वाले, सर्व-संपदा देने वाले, लोकाभिराम श्रीराम को बार-बार नमस्कार।",
+      english: "I bow again and again to Sri Rama — remover of misfortunes, giver of all wealth, delight of the worlds."
+    },
+    benefits: "Removal of calamities, grant of all prosperity.",
+    morning: true, evening: true
+  },
+
+  {
+    id: "sarvesham-svastir",
+    deity: "Universal",
+    tags: ["peace", "universal", "shanti"],
+    repetitions: "3",
+    timing: "Morning, evening, after meditation",
+    status: "full",
+    odia: {
+      title: "ସର୍ବେଷାଂ ସ୍ୱସ୍ତିର୍ ଭବତୁ",
+      text: ""
+    },
+    hindi: {
+      title: "सर्वेषां स्वस्तिर्भवतु",
+      text: "सर्वेषां स्वस्तिर्भवतु ।\nसर्वेषां शान्तिर्भवतु ।\nसर्वेषां पूर्णं भवतु ।\nसर्वेषां मङ्गलं भवतु ॥"
+    },
+    english: {
+      title: "Sarvesham Svastir Bhavatu",
+      text: "Sarvesham Svastir Bhavatu |\nSarvesham Shantir Bhavatu |\nSarvesham Purnam Bhavatu |\nSarvesham Mangalam Bhavatu ||"
+    },
+    meaning: {
+      odia: "",
+      hindi: "सभी का स्वास्थ्य हो, शांति हो, पूर्णता हो, मंगल हो।",
+      english: "May all be well. May all be peaceful. May all be full. May all be auspicious."
+    },
+    benefits: "Universal wellbeing, blessings for all, positive energy.",
+    featured: true, morning: true, evening: true
+  },
+
+  {
+    id: "purnamadah",
+    deity: "Universal / Brahman",
+    tags: ["peace", "universal", "shanti", "vedanta"],
+    repetitions: "3",
+    timing: "Morning, before or after meditation",
+    status: "full",
+    odia: {
+      title: "",
+      text: "ଓଁ ପ      "
+    },
+    hindi: {
+      title: "पूर्णमदः पूर्णमिदम्",
+      text: "ॐ पूर्णमदः पूर्णमिदम्\nपूर्णात् पूर्णमुदच्यते ।\nपूर्णस्य पूर्णमादाय\nपूर्णमेवावशिष्यते ॥\nॐ शान्तिः शान्तिः शान्तिः"
+    },
+    english: {
+      title: "Purnamadah Purnamidam",
+      text: "Om Purnamadah Purnamidam\nPurnat Purnam Udachyate |\nPurnasya Purnam Adaya\nPurnam Evavashishyate ||\nOm Shanti Shanti Shanti"
+    },
+    meaning: {
+      odia: "",
+      hindi: "वह पूर्ण है, यह भी पूर्ण है। पूर्ण से पूर्ण निकालने पर भी पूर्ण ही शेष रहता है।",
+      english: "That is whole, this is whole. From wholeness comes wholeness. Even after taking wholeness from wholeness, wholeness alone remains."
+    },
+    benefits: "Understanding of wholeness, removal of sense of lack, peace.",
+    morning: true
+  },
+
+  {
+    id: "om-dyauh-shantih",
+    deity: "Universal / Brahman",
+    tags: ["peace", "universal", "shanti"],
+    repetitions: "1",
+    timing: "After prayer, end of meditation",
+    status: "full",
+    odia: {
+      title: "ଓଁ ଦ୍ୟୌଃ ଶାନ୍ତଃ",
+      text: ""
+    },
+    hindi: {
+      title: "ॐ द्यौः शान्तिः",
+      text: "ॐ द्यौः शान्तिरन्तरिक्षम् शान्तिः\nपृथ्वी शान्तिरापः शान्तिः ।\nओषधयः शान्तिः वनस्पतयः शान्तिः\nविश्वे देवाः शान्तिः ब्रह्म शान्तिः ।\nसर्वं शान्तिः शान्तिरेव शान्तिः\nसा मा शान्तिरेधि ॥\nॐ शान्तिः शान्तिः शान्तिः"
+    },
+    english: {
+      title: "Om Dyauh Shantih (Complete Shanti Path)",
+      text: "Om — peace in sky, peace in space, peace on earth, peace in waters.\nPeace in plants, peace in trees, peace in all gods, peace in Brahman.\nMay all peace be peace. May that peace come to me.\nOm Shanti Shanti Shanti."
+    },
+    meaning: {
+      odia: "",
+      hindi: "आकाश से लेकर पृथ्वी तक, समस्त सृष्टि में शांति हो। वह शांति मुझमें स्थापित हो।",
+      english: "Peace pervades from sky to earth, throughout all creation. May that universal peace be established in me."
+    },
+    benefits: "Complete peace of mind, harmony with all creation, spiritual calm.",
+    evening: true
+  },
+
 ];
 
-/* ── Helper functions ── */
+/* ─────────────────────────────────────────────────────
+   Build the flat MANTRAS lookup map + auto-fill stubs
+───────────────────────────────────────────────────── */
+const _fullMap = {};
+MANTRAS_FULL.forEach(e => { _fullMap[e.id] = e; });
 
-function getBySection(section) {
-  return MANTRAS.filter(m => m.section === section);
+/* Collect every stub id that appears in SECTIONS */
+const _allStubIds = new Set();
+SECTIONS.forEach(sec => sec.stubs.forEach(s => _allStubIds.add(s.id)));
+
+/* Build the final MANTRAS array: full entries + generated stubs for missing ids */
+const MANTRAS = [];
+_allStubIds.forEach(id => {
+  if (_fullMap[id]) {
+    MANTRAS.push(_fullMap[id]);
+  } else {
+    /* Find first stub definition that has this id to get the English title */
+    let title = id;
+    let deity = "Universal";
+    for (const sec of SECTIONS) {
+      const stub = sec.stubs.find(s => s.id === id);
+      if (stub) { title = stub.title; deity = sec.deity || "Universal"; break; }
+    }
+    MANTRAS.push(_stub(id, title, deity));
+  }
+});
+
+/* ─────────────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────────────── */
+/** Get all entries that appear in a given section */
+function getBySection(sectionId) {
+  const sec = SECTIONS.find(s => s.id === sectionId);
+  if (!sec) return [];
+  return sec.stubs.map(stub => MANTRAS.find(m => m.id === stub.id)).filter(Boolean);
 }
-function getFeatured() {
-  return MANTRAS.filter(m => m.featured);
-}
-function getMorning() {
-  return MANTRAS.filter(m => m.morning);
-}
-function getEvening() {
-  return MANTRAS.filter(m => m.evening);
-}
-function getByTag(tag) {
-  return MANTRAS.filter(m => m.tags.includes(tag));
-}
+
+function getFeatured()  { return MANTRAS.filter(m => m.featured); }
+function getMorning()   { return MANTRAS.filter(m => m.morning);  }
+function getEvening()   { return MANTRAS.filter(m => m.evening);  }
+function getByTag(tag)  { return MANTRAS.filter(m => m.tags.includes(tag)); }
+
 function searchMantras(q) {
   const lower = q.toLowerCase();
   return MANTRAS.filter(m =>
@@ -873,8 +1282,6 @@ function searchMantras(q) {
     (m.english.title || '').toLowerCase().includes(lower) ||
     (m.odia.title    || '').toLowerCase().includes(lower) ||
     (m.deity         || '').toLowerCase().includes(lower) ||
-    (m.category      || '').toLowerCase().includes(lower) ||
-    (m.subcategory   || '').toLowerCase().includes(lower) ||
     m.tags.some(t => t.includes(lower)) ||
     (m.english.text  || '').toLowerCase().includes(lower) ||
     (m.hindi.text    || '').toLowerCase().includes(lower)
