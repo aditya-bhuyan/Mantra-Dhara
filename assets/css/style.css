@@ -90,6 +90,22 @@ header::before {
   background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A227' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   pointer-events: none;
 }
+/* ── Header logo ── */
+.header-logo-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.header-logo {
+  max-width: min(320px, 90vw);
+  height: auto;
+  /* Crisp on all densities */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.45));
+}
+/* Fallback text (shown if SVG fails) */
 .header-om {
   font-size: 56px;
   line-height: 1;
@@ -769,3 +785,96 @@ footer p { margin-top: 6px; opacity: .7; }
 }
 [lang="odia"].card-alt-title  { font-family: var(--font-odia); }
 [lang="english"].card-alt-title { font-family: var(--font-body); font-style: italic; }
+
+/* ══════════════════════════════════════════════════
+   SECTION OVERVIEW GRID (home page — 20 section cards)
+══════════════════════════════════════════════════ */
+.sections-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 40px;
+}
+.section-overview-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.section-overview-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px var(--shadow);
+  border-color: var(--saffron);
+}
+.soc-icon  { font-size: 28px; margin-bottom: 8px; line-height: 1; }
+.soc-label {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.soc-count {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════
+   SECTION CONTENT PROGRESS BAR
+══════════════════════════════════════════════════ */
+.section-progress {
+  margin-bottom: 20px;
+}
+.section-progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.section-progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--saffron), var(--gold));
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+.section-progress-label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════
+   STUB / PENDING CARDS
+══════════════════════════════════════════════════ */
+.stub-card {
+  opacity: .75;
+  border-style: dashed;
+}
+.stub-card::before { background: var(--border); }
+.stub-card:hover   { opacity: 1; }
+.stub-badge {
+  display: inline-block;
+  background: var(--gold-lt);
+  color: var(--gold);
+  border: 1px solid rgba(201,162,39,.3);
+  border-radius: 20px;
+  padding: 0 7px;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* ── Responsive override for section overview ── */
+@media (max-width: 480px) {
+  .sections-overview-grid { grid-template-columns: repeat(2, 1fr); }
+}

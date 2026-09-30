@@ -1,0 +1,11 @@
+# Netlify configuration for Mantra Dhara
+# Pure static site — no build step needed
+
+[build]
+  publish = "."
+  command = ""
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

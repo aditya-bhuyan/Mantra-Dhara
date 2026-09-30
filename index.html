@@ -3,13 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Mantra Dhara — Daily Mantras, Slokas and Prayers in Odia, Hindi and English. Gayatri, Mahamrityunjaya, Hanuman, Shiva, Vishnu, Ganesha, Devi mantras.">
+  <meta name="description" content="Mantra Dhara — Daily Mantras, Stotras and Prayers in Odia, Hindi and English. Ganesha, Shiva, Vishnu, Krishna, Rama, Hanuman, Devi, Saraswati, Lakshmi, Surya, Navagraha and more.">
   <meta name="theme-color" content="#3D0C0C">
-  <meta property="og:title" content="Mantra Dhara — Daily Mantra & Sloka">
-  <meta property="og:description" content="Sacred mantras and slokas in Odia, Hindi and English — with meanings, timing and benefits.">
+  <meta property="og:title" content="मन्त्र धारा — Mantra Dhara">
+  <meta property="og:description" content="200+ sacred mantras and stotras in Odia, Hindi and English — with meanings, timing and benefits.">
+  <meta property="og:image" content="assets/images/icon-192.png">
   <meta property="og:type" content="website">
   <title>मन्त्र धारा — Mantra Dhara</title>
-  <!-- Preconnect for Google Fonts -->
+  <!-- Favicons -->
+  <link rel="icon"             type="image/x-icon"   href="assets/images/favicon.ico">
+  <link rel="icon"             type="image/svg+xml"  href="assets/images/favicon.svg">
+  <link rel="icon"             type="image/png" sizes="32x32" href="assets/images/favicon-32.png">
+  <link rel="icon"             type="image/png" sizes="16x16" href="assets/images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180"       href="assets/images/apple-touch-icon.png">
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;600;700&family=Noto+Serif+Odia:wght@400;600;700&family=Noto+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -20,27 +27,35 @@
 <!-- ── Language Bar ── -->
 <div id="lang-bar">
   <span>भाषा / Language:</span>
-  <button class="lang-btn" data-lang="odia" title="ଓଡ଼ିଆ">🕉️ ଓଡ଼ିଆ</button>
-  <button class="lang-btn active" data-lang="hindi" title="हिन्दी">🇮🇳 हिन्दी</button>
-  <button class="lang-btn" data-lang="english" title="English">🇬🇧 English</button>
+  <button class="lang-btn" data-lang="odia">🕉️ ଓଡ଼ିଆ</button>
+  <button class="lang-btn active" data-lang="hindi">🇮🇳 हिन्दी</button>
+  <button class="lang-btn" data-lang="english">🇬🇧 English</button>
 </div>
 
 <!-- ── Header ── -->
 <header>
-  <div class="header-om">ॐ</div>
-  <h1>मन्त्र धारा</h1>
-  <p class="subtitle">Mantra Dhara &nbsp;·&nbsp; Daily Sacred Mantras &amp; Slokas</p>
+  <div class="header-logo-wrap">
+    <img src="assets/images/logo.svg"
+         alt="मन्त्र धारा — Mantra Dhara"
+         class="header-logo"
+         width="280" height="70"
+         onerror="this.style.display='none';document.getElementById('header-fallback').style.display='block'">
+    <div id="header-fallback" style="display:none">
+      <div class="header-om">ॐ</div>
+      <h1>मन्त्र धारा</h1>
+    </div>
+  </div>
+  <p class="subtitle">Sacred Mantras &amp; Stotras &nbsp;·&nbsp; Odia · Hindi · English</p>
 </header>
 
 <!-- ── Navigation ── -->
 <nav id="main-nav" role="navigation" aria-label="Main navigation">
+  <!-- Static links -->
   <a href="#" data-page="home" class="active">🏠 Home</a>
-  <a href="#" data-page="mantras">🔱 Daily Mantras</a>
-  <a href="#" data-page="slokas">📿 Daily Slokas</a>
-  <a href="#" data-page="sadhana">🪔 Sadhana / Puja</a>
-  <a href="#" data-page="special">✨ Special Prayers</a>
   <a href="#" data-page="favorites">❤️ Favorites</a>
   <a href="#" data-page="bookmarks">🔖 Bookmarks</a>
+  <!-- 20 section links injected by JS into #sections-nav-group -->
+  <span id="sections-nav-group"></span>
 </nav>
 
 <!-- ── Main Content ── -->
@@ -52,124 +67,60 @@
     <!-- Search -->
     <div class="search-wrap">
       <input id="search-input" class="search-input" type="search"
-        placeholder="Search mantras, slokas, deities… (e.g. Gayatri, Hanuman, peace)"
+        placeholder="Search mantras, stotras, deities… (e.g. Gayatri, Hanuman, peace)"
         aria-label="Search mantras">
       <button id="search-btn" class="search-btn" aria-label="Search">🔍</button>
     </div>
 
-    <!-- Search results (hidden by default) -->
-    <div id="search-results-section" style="display:none; margin-bottom:40px;">
+    <!-- Search results -->
+    <div id="search-results-section" style="display:none;margin-bottom:40px">
       <div class="section-title">
-        <span class="section-icon">🔍</span>
-        <h2>Search Results</h2>
+        <span class="section-icon">🔍</span><h2>Search Results</h2>
       </div>
       <div id="search-results-grid" class="card-grid"></div>
     </div>
 
-    <!-- Today's Recommendation -->
+    <!-- Today strip -->
     <div class="today-strip" role="region" aria-label="Today's prayer">
       <div>
         <div class="today-label">🌅 Today's Recommendation</div>
         <h3 id="today-title"></h3>
         <p class="today-preview" id="today-mantra-preview"></p>
-        <button class="btn-primary" id="today-btn" style="margin-top:14px;">View Full Mantra →</button>
+        <button class="btn-primary" id="today-btn" style="margin-top:14px">View Full Text →</button>
       </div>
       <div class="today-om" aria-hidden="true">ॐ</div>
     </div>
 
-    <!-- Quick navigation -->
+    <!-- 20 section overview grid -->
+    <div class="section-title">
+      <span class="section-icon">📖</span>
+      <h2>All Sections</h2>
+    </div>
+    <div id="sections-overview-grid" class="sections-overview-grid"></div>
+
+    <!-- Morning / Evening quick lists -->
     <div class="prayer-columns">
       <div class="prayer-col">
         <div class="prayer-col-title"><span>🌄</span> Morning Prayers</div>
-        <ul class="prayer-list" id="morning-list">
-          <!-- JS-populated -->
-        </ul>
+        <ul class="prayer-list" id="morning-list"></ul>
       </div>
       <div class="prayer-col">
         <div class="prayer-col-title"><span>🌙</span> Evening Prayers</div>
-        <ul class="prayer-list" id="evening-list">
-          <!-- JS-populated -->
-        </ul>
+        <ul class="prayer-list" id="evening-list"></ul>
       </div>
     </div>
 
-    <!-- Featured Mantras -->
+    <!-- Featured -->
     <div class="section-title">
-      <span class="section-icon">⭐</span>
-      <h2>Featured Mantras</h2>
+      <span class="section-icon">⭐</span><h2>Featured</h2>
     </div>
     <div class="card-grid" id="featured-grid"></div>
 
-    <!-- Morning Cards -->
-    <div class="section-title">
-      <span class="section-icon">🌄</span>
-      <h2>Morning Prayers</h2>
-    </div>
-    <div class="card-grid" id="morning-grid"></div>
-
-    <!-- Evening Cards -->
-    <div class="section-title">
-      <span class="section-icon">🌙</span>
-      <h2>Evening Prayers</h2>
-    </div>
-    <div class="card-grid" id="evening-grid"></div>
-
-  </section>
-
-  <!-- ════════════════ DAILY MANTRAS ════════════════ -->
-  <section id="page-mantras" class="page">
-    <div class="section-title">
-      <span class="section-icon">🔱</span>
-      <h2>Daily Mantras</h2>
-    </div>
-    <p style="color:var(--text-muted);font-family:var(--font-ui);font-size:14px;margin-bottom:28px;">
-      Sacred mantras for daily practice — Gayatri, Mahamrityunjaya, Hanuman, Shiva, Vishnu, Ganesha, and Devi mantras.
-    </p>
-    <div id="section-mantras"></div>
-  </section>
-
-  <!-- ════════════════ DAILY SLOKAS ════════════════ -->
-  <section id="page-slokas" class="page">
-    <div class="section-title">
-      <span class="section-icon">📿</span>
-      <h2>Daily Slokas</h2>
-    </div>
-    <p style="color:var(--text-muted);font-family:var(--font-ui);font-size:14px;margin-bottom:28px;">
-      Shlokas for every moment of the day — upon waking, before food, before study, before sleep, and for each deity.
-    </p>
-    <div id="section-slokas"></div>
-  </section>
-
-  <!-- ════════════════ SADHANA / PUJA ════════════════ -->
-  <section id="page-sadhana" class="page">
-    <div class="section-title">
-      <span class="section-icon">🪔</span>
-      <h2>Sadhana / Puja</h2>
-    </div>
-    <p style="color:var(--text-muted);font-family:var(--font-ui);font-size:14px;margin-bottom:28px;">
-      Sequences and mantras for daily sadhana — Gayatri Sadhana, Hanuman Sadhana, Sandhya Vandana, and Puja arrangements.
-    </p>
-    <div id="section-sadhana"></div>
-  </section>
-
-  <!-- ════════════════ SPECIAL PRAYERS ════════════════ -->
-  <section id="page-special" class="page">
-    <div class="section-title">
-      <span class="section-icon">✨</span>
-      <h2>Special Prayers</h2>
-    </div>
-    <p style="color:var(--text-muted);font-family:var(--font-ui);font-size:14px;margin-bottom:28px;">
-      Prayers for specific purposes — protection, peace, health, knowledge, prosperity, and removing obstacles.
-    </p>
-    <div id="section-special"></div>
   </section>
 
   <!-- ════════════════ FAVORITES ════════════════ -->
   <section id="page-favorites" class="page">
-    <div class="section-title">
-      <span class="section-icon">❤️</span>
-      <h2>Favorites</h2>
-    </div>
+    <div class="section-title"><span class="section-icon">❤️</span><h2>Favorites</h2></div>
     <div id="favorites-grid" class="card-grid">
       <div class="empty-state">
         <div class="empty-icon">🤍</div>
@@ -180,10 +131,7 @@
 
   <!-- ════════════════ BOOKMARKS ════════════════ -->
   <section id="page-bookmarks" class="page">
-    <div class="section-title">
-      <span class="section-icon">🔖</span>
-      <h2>Bookmarks</h2>
-    </div>
+    <div class="section-title"><span class="section-icon">🔖</span><h2>Bookmarks</h2></div>
     <div id="bookmarks-grid" class="card-grid">
       <div class="empty-state">
         <div class="empty-icon">📑</div>
@@ -192,9 +140,12 @@
     </div>
   </section>
 
+  <!-- ════════════════ 20 SECTION PAGES (JS-injected) ════════════════ -->
+  <div id="dynamic-section-pages"></div>
+
 </main>
 
-<!-- ── Mantra Detail Modal ── -->
+<!-- ── Modal ── -->
 <div id="mantra-modal-overlay" role="dialog" aria-modal="true" aria-label="Mantra details">
   <div id="mantra-modal"></div>
 </div>
@@ -205,11 +156,9 @@
 <!-- ── Footer ── -->
 <footer>
   <div class="footer-om">ॐ</div>
-  <div>
-    <strong>मन्त्र धारा — Mantra Dhara</strong>
-  </div>
-  <p>Daily mantras and slokas in Odia, Hindi &amp; English</p>
-  <p style="margin-top:10px;">
+  <div><strong>मन्त्र धारा — Mantra Dhara</strong></div>
+  <p>200+ mantras &amp; stotras in Odia, Hindi &amp; English</p>
+  <p style="margin-top:10px">
     <a href="https://github.com/aditya-bhuyan/Mantra-Dhara" target="_blank" rel="noopener">GitHub</a>
     &nbsp;·&nbsp;
     ॐ सर्वे भवन्तु सुखिनः
@@ -218,6 +167,5 @@
 
 <script src="assets/js/data.js"></script>
 <script src="assets/js/app.js"></script>
-
 </body>
 </html>
