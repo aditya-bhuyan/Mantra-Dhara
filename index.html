@@ -219,27 +219,5 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/app.js"></script>
 
-<!-- Hydrate morning/evening prayer lists from JS -->
-<script>
-(function() {
-  function populatePrayerList(listId, entries) {
-    const ul = document.getElementById(listId);
-    if (!ul) return;
-    ul.innerHTML = '';
-    entries.forEach(e => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span class="prayer-name">${e.hindi.title || e.english.title}</span><span class="prayer-arrow">›</span>`;
-      li.addEventListener('click', () => openModal(e));
-      ul.appendChild(li);
-    });
-  }
-  // Run after app.js init
-  document.addEventListener('DOMContentLoaded', () => {
-    populatePrayerList('morning-list', getMorning());
-    populatePrayerList('evening-list', getEvening());
-  });
-})();
-</script>
-
 </body>
 </html>

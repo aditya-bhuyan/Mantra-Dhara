@@ -634,3 +634,138 @@ footer p { margin-top: 6px; opacity: .7; }
 }
 .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .empty-state p { font-size: 15px; }
+
+/* ══════════════════════════════════════════════════
+   TRILINGUAL MODAL — stacked language blocks
+══════════════════════════════════════════════════ */
+
+/* Jump bar at top of modal */
+.trilang-jump-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.trilang-jump-btn {
+  background: var(--saffron-lt);
+  border: 1px solid rgba(255,107,0,.25);
+  color: var(--saffron);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.trilang-jump-btn:hover {
+  background: var(--saffron);
+  color: var(--white);
+  border-color: var(--saffron);
+}
+
+/* The outer wrapper */
+.trilang-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Divider between language blocks */
+.trilang-divider {
+  height: 2px;
+  background: linear-gradient(to right, var(--gold), transparent);
+  opacity: .5;
+}
+
+/* One language block */
+.trilang-block {
+  background: var(--card-bg);
+  padding: 20px 22px 16px;
+  scroll-margin-top: 8px;
+}
+.trilang-block[data-lang="odia"]    { background: #FFFDF4; }
+.trilang-block[data-lang="english"] { background: #F9F9FF; }
+
+/* Block header row: flag + language label + title + copy btn */
+.trilang-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 12px;
+}
+.trilang-flag {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.trilang-lang-label {
+  font-family: var(--font-deva);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--crimson);
+  white-space: nowrap;
+  padding: 1px 10px;
+  background: var(--saffron-lt);
+  border: 1px solid rgba(255,107,0,.2);
+  border-radius: 20px;
+}
+/* Odia label uses Odia font */
+.trilang-block[data-lang="odia"] .trilang-lang-label { font-family: var(--font-odia); }
+.trilang-title {
+  font-family: var(--font-deva);
+  font-size: 15px;
+  color: var(--maroon);
+  font-weight: 600;
+  flex: 1;
+}
+/* Odia title uses Odia font */
+.trilang-block[data-lang="odia"] .trilang-title    { font-family: var(--font-odia); }
+/* English title uses body/roman font */
+.trilang-block[data-lang="english"] .trilang-title { font-family: var(--font-body); font-style: italic; }
+
+/* Meaning paragraph under each language block */
+.trilang-meaning {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  background: rgba(201,162,39,.06);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-family: var(--font-body);
+}
+/* Odia meaning uses Odia font */
+.trilang-block[data-lang="odia"] .trilang-meaning { font-family: var(--font-odia); }
+
+/* ══════════════════════════════════════════════════
+   CARD — alternate-language title pills
+══════════════════════════════════════════════════ */
+.card-alt-titles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: -4px;
+  margin-bottom: 2px;
+}
+.card-alt-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-deva);
+  background: var(--cream);
+  border: 1px solid var(--border);
+  padding: 1px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+[lang="odia"].card-alt-title  { font-family: var(--font-odia); }
+[lang="english"].card-alt-title { font-family: var(--font-body); font-style: italic; }
