@@ -1,0 +1,19 @@
+# GitHub Pages configuration for Mantra Dhara
+# See: https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll
+
+theme: null
+
+# Site metadata
+title: "मन्त्र धारा — Mantra Dhara"
+description: "Daily Mantras and Slokas in Odia, Hindi and English"
+url: "https://aditya-bhuyan.github.io"
+baseurl: "/Mantra-Dhara"
+
+# No Jekyll processing needed — pure static HTML/CSS/JS
+# This file simply tells GitHub Pages to serve the repository root.
+
+# Exclude files from the build
+exclude:
+  - README.md
+  - "*.md"
+  - .git
