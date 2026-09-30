@@ -1,19 +1,29 @@
-# GitHub Pages configuration for Mantra Dhara
-# See: https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll
+# Jekyll configuration for Mantra Dhara
+# Used by Netlify's "bundle exec jekyll build" command.
+# This is a pure static site — Jekyll acts as a passthrough copier only.
 
-theme: null
-
-# Site metadata
 title: "मन्त्र धारा — Mantra Dhara"
 description: "Daily Mantras and Slokas in Odia, Hindi and English"
-url: "https://aditya-bhuyan.github.io"
-baseurl: "/Mantra-Dhara"
+url: ""
+baseurl: ""
 
-# No Jekyll processing needed — pure static HTML/CSS/JS
-# This file simply tells GitHub Pages to serve the repository root.
+# No theme — we supply our own CSS/JS
+theme: null
 
-# Exclude files from the build
+# Tell Jekyll not to process our JS/CSS through Liquid
+keep_files:
+  - assets
+
+# Copy everything to _site as-is
+include:
+  - assets
+  - "*.html"
+  - "*.css"
+  - "*.js"
+
 exclude:
   - README.md
-  - "*.md"
+  - netlify.toml
+  - Gemfile
+  - Gemfile.lock
   - .git

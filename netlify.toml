@@ -1,11 +1,15 @@
 # Netlify configuration for Mantra Dhara
-# Pure static site — no build step needed
+# Jekyll is used as a static file copier only — no templates, no themes.
+# Output goes to _site/ which Netlify publishes.
 
 [build]
-  publish = "."
-  command = ""
+  command = "bundle exec jekyll build"
+  publish = "_site"
+
+[build.environment]
+  JEKYLL_ENV = "production"
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from   = "/*"
+  to     = "/index.html"
   status = 200
