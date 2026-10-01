@@ -4,23 +4,23 @@
 
 /* ── State ── */
 const state = {
-  lang: 'hindi',
+  lang: 'sanskrit',
   favorites:  JSON.parse(localStorage.getItem('md_favorites')  || '[]'),
   bookmarks:  JSON.parse(localStorage.getItem('md_bookmarks')  || '[]'),
   activePage: 'home'
 };
 
-const LANG_LABEL = { odia: 'ଓଡ଼ିଆ', hindi: 'हिन्दी', english: 'English' };
-const LANG_ORDER = ['odia', 'hindi', 'english'];
+const LANG_LABEL = { odia: 'ଓଡ଼ିଆ', sanskrit: 'संस्कृत', english: 'English' };
+const LANG_ORDER = ['odia', 'sanskrit', 'english'];
 
 /* ── Language helpers ── */
 function tField(entry, lang, key) {
-  return entry?.[lang]?.[key] || entry?.hindi?.[key] || entry?.english?.[key] || '';
+  return entry?.[lang]?.[key] || entry?.sanskrit?.[key] || entry?.english?.[key] || '';
 }
 function t(entry, key) { return tField(entry, state.lang, key); }
 function tMeaning(entry, lang) {
   const l = lang || state.lang;
-  return entry?.meaning?.[l] || entry?.meaning?.english || entry?.meaning?.hindi || '';
+  return entry?.meaning?.[l] || entry?.meaning?.english || entry?.meaning?.sanskrit || '';
 }
 
 /* ── Persist ── */
@@ -129,7 +129,7 @@ function openModal(entry) {
     const title   = tField(entry, lang, 'title');
     const meaning = tMeaning(entry, lang);
     const sc      = lang === 'odia' ? 'odia' : lang === 'english' ? 'english' : '';
-    const flag    = lang === 'odia' ? '🕉️' : lang === 'hindi' ? '🇮🇳' : '🇬🇧';
+    const flag    = lang === 'odia' ? '🕉️' : lang === 'sanskrit' ? '🪷' : '🇬🇧';
     return `
       <div class="trilang-block" id="trilang-${lang}" data-lang="${lang}">
         <div class="trilang-header">
@@ -159,7 +159,7 @@ function openModal(entry) {
       <div class="trilang-jump-bar">
         <span style="font-size:12px;color:var(--text-muted);font-family:var(--font-ui);margin-right:8px;">Jump to:</span>
         <button class="trilang-jump-btn" data-target="trilang-odia">🕉️ ଓଡ଼ିଆ</button>
-        <button class="trilang-jump-btn" data-target="trilang-hindi">🇮🇳 हिन्दी</button>
+        <button class="trilang-jump-btn" data-target="trilang-sanskrit">🪷 संस्कृत</button>
         <button class="trilang-jump-btn" data-target="trilang-english">🇬🇧 English</button>
       </div>
       <div class="trilang-stack">${langBlocks}</div>
